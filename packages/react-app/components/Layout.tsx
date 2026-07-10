@@ -1,22 +1,21 @@
-import { FC, ReactNode } from "react";
-import Footer from "./Footer";
-import Header from "./Header";
+import { FC, ReactNode } from 'react'
+import { Header } from './Header'
 
 interface Props {
-    children: ReactNode;
+  children: ReactNode
 }
 const Layout: FC<Props> = ({ children }) => {
-    return (
-        <>
-            <div className="bg-gypsum overflow-hidden flex flex-col min-h-screen">
-                <Header />
-                <div className="py-16 max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
-                    {children}
-                </div>
-                <Footer />
-            </div>
-        </>
-    );
-};
+  return (
+    <div className="bg-gypsum flex min-h-screen justify-center">
+      <div
+        style={{ imageRendering: 'pixelated' }}
+        className=" w-full max-w-[420px] bg-[url('/pixel_room_background.png')] bg-cover bg-center bg-no-repeat flex min-h-screen flex-col"
+      >
+        <Header></Header>
+        {children}
+      </div>
+    </div>
+  )
+}
 
-export default Layout;
+export default Layout
