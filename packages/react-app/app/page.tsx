@@ -26,6 +26,7 @@ const MOCK_BOARD: (CatInstance | null)[] = [
   { id: '12', level: 999 },
 ]
 
+
 export default function Home() {
   const [mergeAnimation, setMergeAnimation] = useState<{
     fromIndex: number
@@ -39,7 +40,6 @@ export default function Home() {
 
     if (!fromCat || !toCat || fromCat.level !== toCat.level) return
 
-    // НЕ трогаем board вообще — только запускаем анимацию
     setMergeAnimation({ fromIndex, toIndex, level: toCat.level })
 
     setTimeout(() => {
@@ -50,9 +50,8 @@ export default function Home() {
         return next
       })
       setMergeAnimation(null)
-    }, 500) // подбери под длительность анимации
+    }, 500)
   }
-
 
   return (
     <>
@@ -64,14 +63,6 @@ export default function Home() {
           cols={4}
           mergeAnimation={mergeAnimation}
         />
-        {/* {!address && (
-          <div className="h1">Please install Metamask and connect.</div>
-        )}
-        {address && (
-          <div className="h1">
-            There you go... a canvas for your next Minipay project!
-          </div>
-        )} */}
       </main>
       <BottomNav></BottomNav>
     </>

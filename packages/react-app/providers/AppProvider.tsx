@@ -1,17 +1,19 @@
-'use client';
+'use client'
 
-import '@rainbow-me/rainbowkit/styles.css';
+import '@rainbow-me/rainbowkit/styles.css'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   RainbowKitProvider,
   connectorsForWallets,
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider, createConfig, http } from 'wagmi';
-import { celo, celoAlfajores } from 'wagmi/chains';
+} from '@rainbow-me/rainbowkit'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { WagmiProvider, createConfig, http } from 'wagmi'
+import { celo, celoAlfajores } from 'wagmi/chains'
 
-import Layout from '../components/Layout';
-import { injectedWallet } from '@rainbow-me/rainbowkit/wallets';
+import { injectedWallet } from '@rainbow-me/rainbowkit/wallets'
+import { Toaster } from 'react-hot-toast'
+import Layout from '../components/Layout'
+import { SessionChecker } from './ SessionChecker'
 
 const connectors = connectorsForWallets(
   [
@@ -24,7 +26,7 @@ const connectors = connectorsForWallets(
     appName: 'Celo Composer',
     projectId: process.env.WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
   }
-);
+)
 
 const config = createConfig({
   connectors,
@@ -33,18 +35,21 @@ const config = createConfig({
     [celo.id]: http(),
     [celoAlfajores.id]: http(),
   },
-});
+})
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient()
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <Layout>{children}</Layout>
+          <Toaster position="bottom-right" />
+          <SessionChecker>
+            <Layout>{children}</Layout>
+          </SessionChecker>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
-  );
+  )
 }
