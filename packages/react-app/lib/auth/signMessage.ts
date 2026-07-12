@@ -24,7 +24,6 @@ export const useEthereumAuth = () => {
 		status: 'idle',
 	})
 
-	// Предзагрузка nonce при инициализации хука
 	const onceRef = useRef(false)
 	const getNonce = useCallback(async () => {
 		try {
