@@ -30,6 +30,7 @@ export const useEthereumAuth = () => {
 			const data = await apiFetch<{ nonce: string }>('/auth/nonce')
 			setState((x) => ({ ...x, nonce: data.nonce }))
 		} catch {
+			// Временно — показываем РЕАЛЬНУЮ ошибку через toast, а не общий текст
 			setState((x) => ({
 				...x,
 				errorMessage: 'Failed to prepare authentication',

@@ -17,9 +17,9 @@ export const SessionChecker = ({ children }: { children: ReactNode }) => {
 			}
 			fetchingStatusRef.current = true
 			try {
-				const data = await apiFetch<{ address?: Address }>('/auth/me')
-				console.log('SessionChecker: /auth/me response:', data.address)
-				setAuthStatus(data.address ? 'authenticated' : 'unauthenticated')
+				const data = await apiFetch<{ currentAddress?: Address }>('/auth/me')
+				console.log('SessionChecker: /auth/me response:', data.currentAddress)
+				setAuthStatus(data.currentAddress ? 'authenticated' : 'unauthenticated')
 			} catch (_error) {
 				console.error(_error)
 				setAuthStatus('unauthenticated')
