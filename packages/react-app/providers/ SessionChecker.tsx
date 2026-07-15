@@ -28,8 +28,11 @@ export const SessionChecker = ({ children }: { children: ReactNode }) => {
 			}
 		}
 		fetchStatus()
-		window.addEventListener('focus', fetchStatus)
-		return () => window.removeEventListener('focus', fetchStatus)
+		const onVisible = () => {
+			if (document.visibilityState === 'visible') fetchStatus()
+		}
+		document.addEventListener('visibilitychange', onVisible)
+		return () => document.removeEventListener('visibilitychange', onVisible)
 	}, [])
 
 	return <>{children}</>

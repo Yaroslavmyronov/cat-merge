@@ -1,11 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import toast from 'react-hot-toast'
 import { UserRejectedRequestError } from 'viem'
-import { celoAlfajores } from 'viem/chains'
 import { createSiweMessage } from 'viem/siwe'
-import { useAccount, useSignMessage } from 'wagmi'
+import { useAccount, useChainId, useSignMessage } from 'wagmi'
 
 import { apiFetch } from '@/lib/api/fetchInstance'
 import { useGameStore } from '@/lib/store/useGameStore'
@@ -13,62 +12,33 @@ import { useGameStore } from '@/lib/store/useGameStore'
 type AuthState = {
 	status: 'idle' | 'signing' | 'verifying'
 	errorMessage?: string
-	nonce?: string
 }
 
 export const useEthereumAuth = () => {
 	const { address } = useAccount()
+	const chainId = useChainId()
 	const { signMessageAsync } = useSignMessage()
 	const { setAuthStatus } = useGameStore()
 	const [{ status, ...state }, setState] = useState<AuthState>({
 		status: 'idle',
 	})
 
-	const onceRef = useRef(false)
-	const getNonce = useCallback(async () => {
-		try {
-			const data = await apiFetch<{ nonce: string }>('/auth/nonce')
-			setState((x) => ({ ...x, nonce: data.nonce }))
-		} catch {
-			// Временно — показываем РЕАЛЬНУЮ ошибку через toast, а не общий текст
-			setState((x) => ({
-				...x,
-				errorMessage: 'Failed to prepare authentication',
-				status: 'idle',
-			}))
-			toast.error('Failed to prepare authentication')
-		}
-	}, [])
-
-	useEffect(() => {
-		if (onceRef.current) return
-		onceRef.current = true
-		getNonce()
-	}, [getNonce])
-
 	const signIn = useCallback(async () => {
-		try {
-			if (!address || !state.nonce) {
-				return
-			}
-			if (typeof window === 'undefined' || !window.ethereum) {
-				return
-			}
+		if (!address) return
 
-			setState((x) => ({
-				...x,
-				errorMessage: undefined,
-				status: 'signing',
-			}))
+		setState({ errorMessage: undefined, status: 'signing' })
+
+		try {
+			const { message: nonce } = await apiFetch<{ message: string }>('/auth/nonce')
 
 			const message = createSiweMessage({
 				domain: window.location.host,
 				address,
-				statement: 'Sign in with Ethereum to the app.',
+				statement: 'Sign in to Cozy Cats.',
 				uri: window.location.origin,
 				version: '1',
-				chainId: celoAlfajores.id,
-				nonce: state.nonce,
+				chainId,
+				nonce,
 			})
 
 			let signature: string
@@ -76,49 +46,28 @@ export const useEthereumAuth = () => {
 			try {
 				signature = await signMessageAsync({ message })
 			} catch (error) {
-				// If the user canceled the signature - this is not an error
 				if (error instanceof UserRejectedRequestError) {
 					toast.error('Signature request was rejected by user')
-					return setState((x) => ({
-						...x,
-						status: 'idle',
-					}))
+					setState({ status: 'idle' })
+					return
 				}
-
-				toast.error('Failed to sign message')
-				return setState((x) => ({
-					...x,
-					errorMessage: 'Failed to sign message',
-					status: 'idle',
-				}))
+				throw error
 			}
-
-			setState((x) => ({ ...x, status: 'verifying' }))
-
-			try {
-				await apiFetch('/auth/verify', {
-					method: 'POST',
-					body: JSON.stringify({ address, message, signature }),
-				})
-				setAuthStatus('authenticated')
-				return true
-			} catch {
-				toast.error('Failed to verify signature')
-				setAuthStatus('unauthenticated')
-				return setState((x) => ({
-					...x,
-					errorMessage: 'Failed to verify signature',
-					status: 'idle',
-				}))
-			}
-		} catch (error) {
-			toast.error('An unexpected error occurred')
-			setState({
-				errorMessage: 'An unexpected error occurred',
-				status: 'idle',
+			setState({ status: 'verifying' })
+			await apiFetch<{ token: string }>('/auth/verify', {
+				method: 'POST',
+				body: JSON.stringify({ message, signature }),
 			})
+			setAuthStatus('authenticated')
+			setState({ status: 'idle' })
+			return true
+		} catch (error) {
+			console.error('Sign in failed:', error)
+			toast.error('Sign in failed')
+			setAuthStatus('unauthenticated')
+			setState({ errorMessage: 'Sign in failed', status: 'idle' })
 		}
-	}, [address, state.nonce, setAuthStatus])
+	}, [address, chainId, signMessageAsync, setAuthStatus])
 
 	const signOut = useCallback(async () => {
 		try {
@@ -134,6 +83,5 @@ export const useEthereumAuth = () => {
 		signOut,
 		status,
 		errorMessage: state.errorMessage,
-		nonce: state.nonce,
 	}
 }
