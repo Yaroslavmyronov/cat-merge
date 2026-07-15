@@ -1,14 +1,10 @@
 import { DragDropProvider } from '@dnd-kit/react'
 
+import { BoardState } from '@/app/page'
 import { PointerActivationConstraints } from '@dnd-kit/dom'
 import { PointerSensor } from '@dnd-kit/react'
 import { FarmCell } from './FarmCell'
 import { FarmStats } from './FarmStats'
-
-interface CatInstance {
-	id: string
-	level: number
-}
 
 interface MergeAnimationState {
 	fromIndex: number
@@ -17,13 +13,13 @@ interface MergeAnimationState {
 }
 
 interface FarmGridProps {
-	board: (CatInstance | null)[]
+	cells: BoardState['cells']
 	onMerge: (fromIndex: number, toIndex: number) => void
 	mergeAnimation: MergeAnimationState | null
 	cols: number
 }
 
-export function FarmBoard({ board, onMerge, mergeAnimation, cols }: FarmGridProps) {
+export function FarmBoard({ cells, onMerge, mergeAnimation, cols }: FarmGridProps) {
 	function handleDragEnd(event: any) {
 		const { operation, canceled } = event
 		if (canceled) return
@@ -63,7 +59,7 @@ export function FarmBoard({ board, onMerge, mergeAnimation, cols }: FarmGridProp
 							className="relative grid"
 							style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
 						>
-							{board.map((cat, index) => (
+							{cells.map((cat, index) => (
 								<FarmCell
 									key={index}
 									index={index}

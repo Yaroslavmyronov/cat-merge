@@ -1,8 +1,9 @@
+export type LeagueType = 'bronze' | 'silver' | 'gold' | 'emerald' | 'sapphire' | 'amethyst'
+
 export interface Player {
-	id: string
-	walletAddress: string
 	balance: number
-	totalEarned: number
 	incomeRate: number
+	totalEarned: number
 	lastCollectedAt: string
+	league: LeagueType
 }

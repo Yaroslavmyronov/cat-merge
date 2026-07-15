@@ -1,13 +1,8 @@
 import { useDraggable, useDroppable } from '@dnd-kit/react'
 
+import { BoardCell } from '@/lib/types/board'
 import { CatSprite } from './CatSprite'
 import { MergeAnimation } from './MergeAnimation'
-
-
-interface CatInstance {
-	id: string
-	level: number
-}
 
 export function FarmCell({
 	index,
@@ -16,7 +11,7 @@ export function FarmCell({
 	mergeInfo,
 }: {
 	index: number
-	cat: CatInstance | null
+	cat: BoardCell | null
 	hidden: boolean
 	mergeInfo: { level: number } | null
 }) {
@@ -28,13 +23,13 @@ export function FarmCell({
 		<div
 			ref={dropRef}
 			role="gridcell"
-			aria-label={cat ? `Кот уровня ${cat.level}` : 'Пустая клетка'}
+			aria-label={cat ? `Кот уровня ${cat.unitLevel}` : 'Пустая клетка'}
 			className={`relative flex aspect-square items-end justify-center rounded ${isDropTarget ? 'bg-yellow-200/30' : ''
 				}`}
 		>
 			{cat && !isDragging && !hidden && !mergeInfo && (
 				<div className="absolute z-10 top-[15px] left-[64%] flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center border-[2px] border-[#8A6D12] bg-[#F5E9D3] text-[8px] font-bold text-[#5C4A1E]">
-					{cat?.level}
+					{cat?.unitLevel}
 				</div>
 			)}
 
@@ -48,7 +43,7 @@ export function FarmCell({
 			{showCat && (
 				<div ref={dragRef} style={{ touchAction: 'none' }} className="absolute inset-0">
 					<div style={{ opacity: isDragging ? 0.5 : 1 }} className="absolute bottom-[14px] left-[55%] -translate-x-1/2">
-						<CatSprite level={cat.level} size={50} />
+						<CatSprite level={cat.unitLevel} size={50} />
 					</div>
 				</div>
 			)}

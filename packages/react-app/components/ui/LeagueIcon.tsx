@@ -1,4 +1,4 @@
-type LeagueType = 'bronze' | 'silver' | 'gold' | 'emerald' | 'sapphire' | 'amethyst'
+import { LeagueType } from '@/lib/types/player'
 
 export const LeagueIcon = ({ league, size = 16 }: { league: LeagueType; size?: number }) => {
 	return (

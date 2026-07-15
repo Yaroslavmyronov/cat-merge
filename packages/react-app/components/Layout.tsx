@@ -14,7 +14,7 @@ const Layout: FC<Props> = ({ children }) => {
         className=" w-full max-w-[420px] bg-[url('/pixel_room_background.png')] bg-cover bg-center bg-no-repeat flex min-h-screen flex-col"
       >
         <AuthGate>
-          <Header></Header>
+          <Header />
           {children}
         </AuthGate>
       </div>

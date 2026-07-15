@@ -3,68 +3,103 @@
 import { BottomNav } from '@/components/BottomNav'
 import { FarmBoard } from '@/components/FarmBoard'
 import { SpawnZone } from '@/components/SpawnZone'
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useState } from 'react'
+import { apiFetch } from '@/lib/api/fetchInstance'
+import { BoardCell, BoardResponse } from '@/lib/types/board'
+import { useEffect, useState } from 'react'
 
-interface CatInstance {
-  id: string
-  level: number
+export interface BoardState extends Omit<BoardResponse, 'cells'> {
+  cells: (BoardCell | null)[]
 }
 
-const MOCK_BOARD: (CatInstance | null)[] = [
-  { id: '1', level: 1 },
-  { id: '2', level: 1 },
-  { id: '3', level: 1 },
-  { id: '4', level: 1 },
-  { id: '5', level: 1 },
-  { id: '6', level: 1 },
-  { id: '7', level: 1 },
-  { id: '8', level: 1 },
-  { id: '9', level: 1 },
-  { id: '10', level: 1 },
-  { id: '11', level: 1 },
-  { id: '12', level: 999 },
-]
-
+function normalize(data: BoardResponse): BoardState {
+  return {
+    ...data,
+    cells: [...data.cells]
+      .sort((a, b) => a.index - b.index)
+      .map((c) => (c.unitLevel > 0 ? c : null)),
+  }
+}
 
 export default function Home() {
+  const [state, setState] = useState<BoardState | null>(null) 
+  const [loading, setLoading] = useState(true)
+  const [isMerging, setIsMerging] = useState(false)
   const [mergeAnimation, setMergeAnimation] = useState<{
     fromIndex: number
     toIndex: number
     level: number
   } | null>(null)
-  const [board, setBoard] = useState<(CatInstance | null)[]>(MOCK_BOARD)
-  function handleMerge(fromIndex: number, toIndex: number) {
-    const fromCat = board[fromIndex]
-    const toCat = board[toIndex]
 
-    if (!fromCat || !toCat || fromCat.level !== toCat.level) return
+  useEffect(() => {
+    let cancelled = false
 
-    setMergeAnimation({ fromIndex, toIndex, level: toCat.level })
-
-    setTimeout(() => {
-      setBoard((prev) => {
-        const next = [...prev]
-        next[fromIndex] = null
-        next[toIndex] = { id: crypto.randomUUID(), level: toCat.level + 1 }
-        return next
+    apiFetch<BoardResponse>('/board/get-board')
+      .then((data) => {
+        if (!cancelled) {
+          setState(normalize(data))
+        }
       })
+      .catch((error) => {
+        console.error('Failed to fetch board state:', error)
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleMerge(fromIndex: number, toIndex: number) {
+    if (!state || isMerging) return
+
+    const fromCat = state.cells[fromIndex]
+    const toCat = state.cells[toIndex]
+
+    if (!fromCat || !toCat || fromCat.unitLevel !== toCat.unitLevel) return
+
+    setIsMerging(true)
+    setMergeAnimation({ fromIndex, toIndex, level: toCat.unitLevel })
+
+    try {
+      const response = await apiFetch<BoardResponse>('/board/merge', {
+        method: 'POST',
+        body: JSON.stringify({ fromIndex, toIndex }),
+      })
+      setTimeout(() => {
+        setState(normalize(response))
+        setMergeAnimation(null)
+        setIsMerging(false)
+      }, 500)
+    } catch (error) {
       setMergeAnimation(null)
-    }, 500)
+      setIsMerging(false)
+
+      const fresh = await apiFetch<BoardResponse>('/board/get-board').catch(() => null)
+      if (fresh) setState(normalize(fresh))
+    }
   }
 
   return (
     <>
       <main className="flex flex-1 flex-col overflow-y-auto items-center justify-center px-4">
-        <SpawnZone></SpawnZone>
-        <FarmBoard
-          board={board}
-          onMerge={handleMerge}
-          cols={4}
-          mergeAnimation={mergeAnimation}
-        />
+        <SpawnZone />
+        {loading ? (
+          <div className="mt-4 text-gray-500">Loading...</div>
+        ) : !state ? (
+          <div className="mt-4 text-red-500">Не удалось загрузить доску</div>
+        ) : (
+          <FarmBoard
+            cells={state.cells}
+            onMerge={handleMerge}
+            cols={4}
+            mergeAnimation={mergeAnimation}
+          />
+        )}
       </main>
-      <BottomNav></BottomNav>
+      <BottomNav />
     </>
   )
 }
