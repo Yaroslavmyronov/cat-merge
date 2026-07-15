@@ -3,7 +3,9 @@
 import { BottomNav } from '@/components/BottomNav'
 import { FarmBoard } from '@/components/FarmBoard'
 import { SpawnZone } from '@/components/SpawnZone'
+import { useLiveValue } from '@/hooks/useLiveValue'
 import { apiFetch } from '@/lib/api/fetchInstance'
+import { useGameStore } from '@/lib/store/useGameStore'
 import { BoardCell, BoardResponse } from '@/lib/types/board'
 import { useEffect, useState } from 'react'
 
@@ -21,7 +23,7 @@ function normalize(data: BoardResponse): BoardState {
 }
 
 export default function Home() {
-  const [state, setState] = useState<BoardState | null>(null) 
+  const { board: state, setBoard } = useGameStore()
   const [loading, setLoading] = useState(true)
   const [isMerging, setIsMerging] = useState(false)
   const [mergeAnimation, setMergeAnimation] = useState<{
@@ -30,13 +32,15 @@ export default function Home() {
     level: number
   } | null>(null)
 
+  const liveBalance = useLiveValue(state?.balance ?? 0, state?.incomeRate ?? 0, state?.serverTime ?? '')
+
   useEffect(() => {
     let cancelled = false
 
     apiFetch<BoardResponse>('/board/get-board')
       .then((data) => {
         if (!cancelled) {
-          setState(normalize(data))
+          setBoard(normalize(data))
         }
       })
       .catch((error) => {
@@ -69,7 +73,7 @@ export default function Home() {
         body: JSON.stringify({ fromIndex, toIndex }),
       })
       setTimeout(() => {
-        setState(normalize(response))
+        setBoard(normalize(response))
         setMergeAnimation(null)
         setIsMerging(false)
       }, 500)
@@ -78,7 +82,7 @@ export default function Home() {
       setIsMerging(false)
 
       const fresh = await apiFetch<BoardResponse>('/board/get-board').catch(() => null)
-      if (fresh) setState(normalize(fresh))
+      if (fresh) setBoard(normalize(fresh))
     }
   }
 
@@ -92,6 +96,8 @@ export default function Home() {
           <div className="mt-4 text-red-500">Не удалось загрузить доску</div>
         ) : (
           <FarmBoard
+            balance={liveBalance}
+            incomeRate={state.incomeRate}
             cells={state.cells}
             onMerge={handleMerge}
             cols={4}

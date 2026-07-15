@@ -1,3 +1,5 @@
+import { LeagueType } from './player'
+
 export interface BoardCell {
 	id: string
 	playerId: string
@@ -8,6 +10,8 @@ export interface BoardCell {
 export interface BoardResponse {
 	cells: BoardCell[]
 	balance: number
+	totalEarned: number
+	league: LeagueType
 	incomeRate: number
 	lastCollectedAt: string
 	serverTime: string

@@ -1,11 +1,20 @@
 import { useProfile } from '@/hooks/useProfile'
 import { formatCompact, formatFull } from '@/lib/formatCompact'
 
-import { LeagueIcon } from './ui/LeagueIcon'
+import { useLiveValue } from '@/hooks/useLiveValue'
+import { useGameStore } from '@/lib/store/useGameStore'
 import { LeagueType } from '@/lib/types/player'
+import { LeagueIcon } from './ui/LeagueIcon'
 
 export const Header = () => {
+  const board = useGameStore((state) => state.board)
   const { data: profile, loading } = useProfile()
+
+  const liveTotalEarned = useLiveValue(
+    board?.totalEarned ?? 0,
+    board?.incomeRate ?? 0,
+    board?.serverTime ?? '',
+  )
 
   return (
     <header className="flex items-center justify-between px-4 py-3">
@@ -22,7 +31,7 @@ export const Header = () => {
             className="flex items-center gap-1.5"
             role="status"
             aria-label={
-              loading ? 'Loading balance' : `${formatFull(profile?.balance ?? 0)} gold coins`
+              loading ? 'Loading balance' : `${formatFull(liveTotalEarned)} gold coins`
             }
           >
             <img
@@ -35,7 +44,7 @@ export const Header = () => {
               aria-hidden="true"
               className="text-sm font-medium tabular-nums text-[#4A3540]"
             >
-              {loading ? '—' : formatCompact(profile?.balance ?? 0)}
+              {loading ? '—' : formatCompact(liveTotalEarned)}
             </span>
           </p>
 
