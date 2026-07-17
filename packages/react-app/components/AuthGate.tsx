@@ -4,22 +4,33 @@ import { useEthereumAuth } from '@/lib/auth/signMessage'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
 import { useAccount } from 'wagmi'
+
+const Screen = ({ children }: { children: React.ReactNode }) => (
+	<div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[url('/menu.png')] bg-cover bg-center bg-no-repeat px-4">
+		{children}
+	</div>
+)
+
 export function AuthGate({ children }: { children: React.ReactNode }) {
 	const [hasMounted, setHasMounted] = useState(false)
 	const { authStatus } = useGameStore()
 	const { address } = useAccount()
-	const { signIn, status, errorMessage, nonce } = useEthereumAuth()
+	const { signIn, status, errorMessage } = useEthereumAuth()
 
 	useEffect(() => {
 		setHasMounted(true)
 	}, [])
 
-	// Пока компонент не "смонтировался" на клиенте — не рендерим ничего специфичного,
-	// чтобы избежать рассинхрона между сервером и клиентом
-	if (!hasMounted) {
-		return null // или простой лоадер без сложной логики
+	if (!hasMounted || authStatus === 'loading') {
+		return (
+			<Screen>
+				<div className="w-[200px] overflow-hidden border-[3px] border-[#443226] bg-[#6E4E38] p-1">
+					<div className="h-3 w-0 animate-[fill_1.5s_steps(8)_infinite] bg-[#8A6752]" />
+				</div>
+				<p className="text-xs font-medium text-[#4A3540]">Loading...</p>
+			</Screen>
+		)
 	}
 
 	if (authStatus === 'authenticated') {
@@ -28,39 +39,33 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
 	if (status === 'signing' || status === 'verifying') {
 		return (
-			<div className="flex min-h-screen flex-col items-center justify-center gap-4">
-				<p>{status === 'signing' ? 'Подпишите сообщение в кошельке...' : 'Проверяем...'}</p>
-			</div>
+			<Screen>
+				<p className="text-xs text-[#4A3540]">
+					{status === 'signing' ? 'Sign the message in your wallet...' : 'Verifying...'}
+				</p>
+			</Screen>
 		)
 	}
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
-			<h1 className="text-2xl font-bold">🐱 Cat Merge Game</h1>
+		<Screen>
+			<h1 className="text-2xl font-bold">🐱 Cozy Cats</h1>
 			<p className="text-center text-sm text-gray-600">
-				Сливай котиков, зарабатывай золото, поднимайся в рейтинге
+				Merge cats, earn gold, climb the leaderboard
 			</p>
-			{errorMessage && (
-				<p className="text-sm text-red-500">{errorMessage}</p>
-			)}
 
-			{/* Если кошелёк ещё не подключён вообще (тестирование в обычном браузере) — показываем кнопку RainbowKit */}
+			{errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
+
 			{!address && <ConnectButton />}
 
-			{/* Если адрес уже есть (подключён через MiniPay или через кнопку выше) — показываем "Играть" */}
 			{address && (
 				<button
-					onClick={() => {
-						toast(`address: ${address ?? 'НЕТ'}\nnonce: ${nonce ?? 'НЕТ'}\nstatus: ${status}`, {
-							duration: 6000,
-						})
-						signIn()
-					}}
+					onClick={() => signIn()}
 					className="rounded-lg bg-[#7EB84A] px-8 py-3 font-bold text-white"
 				>
-					Играть
+					Play
 				</button>
 			)}
-		</div>
+		</Screen>
 	)
 }

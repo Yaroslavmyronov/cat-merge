@@ -1,9 +1,19 @@
 import { ReactNode } from 'react'
 
-export const NavItem = ({ item, children }: { item: { label: string }, children: ReactNode }) => {
+interface NavItemProps {
+	item: { label: string }
+	children: ReactNode
+	onClick?: () => void
+}
+
+export const NavItem = ({ item, children, onClick }: NavItemProps) => {
 	return (
 		<li className="flex-1">
-			<button className="relative flex w-full flex-col items-center justify-center" type="button">
+			<button
+				onClick={onClick}
+				className="relative flex w-full flex-col items-center justify-center"
+				aria-label={item.label}
+				type="button">
 				<img className="absolute inset-0 h-full w-full" src="/frame-shop.png" alt="" />
 				<div className="relative flex overflow-hidden flex-col items-center justify-center gap-1 px-2 py-3 ">
 					{children}

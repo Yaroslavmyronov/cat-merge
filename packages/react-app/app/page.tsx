@@ -5,21 +5,13 @@ import { FarmBoard } from '@/components/FarmBoard'
 import { SpawnZone } from '@/components/SpawnZone'
 import { useLiveValue } from '@/hooks/useLiveValue'
 import { apiFetch } from '@/lib/api/fetchInstance'
+import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { BoardCell, BoardResponse } from '@/lib/types/board'
 import { useEffect, useState } from 'react'
 
 export interface BoardState extends Omit<BoardResponse, 'cells'> {
   cells: (BoardCell | null)[]
-}
-
-function normalize(data: BoardResponse): BoardState {
-  return {
-    ...data,
-    cells: [...data.cells]
-      .sort((a, b) => a.index - b.index)
-      .map((c) => (c.unitLevel > 0 ? c : null)),
-  }
 }
 
 export default function Home() {

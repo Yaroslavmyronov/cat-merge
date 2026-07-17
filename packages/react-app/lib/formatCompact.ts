@@ -18,7 +18,7 @@ export function formatCompact(n: number): string {
 	)
 	const scaled = n / Math.pow(10, tier * 3)
 
-	const digits = scaled >= 100 ? 0 : 1
+	const digits = scaled >= 100 ? 2 : scaled >= 10 ? 2 : 2
 
 	const factor = Math.pow(10, digits)
 	const truncated = Math.floor(scaled * factor) / factor

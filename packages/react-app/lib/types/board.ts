@@ -16,3 +16,9 @@ export interface BoardResponse {
 	lastCollectedAt: string
 	serverTime: string
 }
+
+export interface CatPrice {
+	level: number
+	price: number
+	speed: number
+}
