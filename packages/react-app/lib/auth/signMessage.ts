@@ -18,7 +18,7 @@ export const useEthereumAuth = () => {
 	const { address } = useAccount()
 	const chainId = useChainId()
 	const { signMessageAsync } = useSignMessage()
-	const { setAuthStatus } = useGameStore()
+	const setAuthStatus = useGameStore((s) => s.setAuthStatus)
 	const [{ status, ...state }, setState] = useState<AuthState>({
 		status: 'idle',
 	})

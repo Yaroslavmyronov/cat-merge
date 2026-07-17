@@ -1,18 +1,19 @@
+import { useLiveValue } from '@/hooks/useLiveValue'
 import { formatCompact, formatFull } from '@/lib/formatCompact'
+import { useGameStore } from '@/lib/store/useGameStore'
 
-interface FarmStatsProps {
-	incomePerSecond: number
-	currentGold: number
-}
+export const FarmStats = () => {
+	const state = useGameStore((s) => s.board)
 
-export const FarmStats = ({ incomePerSecond, currentGold }: FarmStatsProps) => {
+	const liveBalance = useLiveValue(state?.balance ?? 0, state?.incomeRate ?? 0, state?.serverTime ?? '')
+	const incomeRate = state?.incomeRate ?? 0
 	return (
 		<div className="w-full">
 			<div className="flex items-center bg-[#6E4E38] px-1 py-1 mt-2 border-[#443226] border-[3px] w-[250px] mx-auto">
 				<p
 					className="flex flex-1 items-center gap-1.5 justify-start"
 					role="status"
-					aria-label={`Balance: ${formatFull(currentGold)} gold`}
+					aria-label={`Balance: ${formatFull(liveBalance)} gold`}
 				>
 					<img
 						src="/pixel_coin.png"
@@ -21,14 +22,14 @@ export const FarmStats = ({ incomePerSecond, currentGold }: FarmStatsProps) => {
 						style={{ imageRendering: 'pixelated' }}
 					/>
 					<span aria-hidden="true" className="text-xs font-medium text-white tabular-nums">
-						{formatCompact(currentGold)}
+						{formatCompact(liveBalance)}
 					</span>
 				</p>
 				<div className="h-[22px] w-[3px] bg-[#8A6752] shrink-0 mx-2"></div>
 				<p
 					className="flex flex-1 items-center gap-1.5 justify-end"
 					role="status"
-					aria-label={`Farm income: ${formatFull(incomePerSecond)} gold per second`}
+					aria-label={`Farm income: ${formatFull(incomeRate)} gold per second`}
 				>
 					<img
 						src="/lightning.png"
@@ -37,7 +38,7 @@ export const FarmStats = ({ incomePerSecond, currentGold }: FarmStatsProps) => {
 						style={{ imageRendering: 'pixelated' }}
 					/>
 					<span aria-hidden="true" className="text-xs font-medium text-white tabular-nums">
-						{formatCompact(incomePerSecond)}/s
+						{formatCompact(incomeRate)}/s
 					</span>
 				</p>
 			</div >

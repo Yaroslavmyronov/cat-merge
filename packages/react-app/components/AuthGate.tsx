@@ -14,7 +14,7 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
 	const [hasMounted, setHasMounted] = useState(false)
-	const { authStatus } = useGameStore()
+	const authStatus = useGameStore((s) => s.authStatus)
 	const { address } = useAccount()
 	const { signIn, status, errorMessage } = useEthereumAuth()
 

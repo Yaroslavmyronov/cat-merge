@@ -15,13 +15,12 @@ interface MergeAnimationState {
 interface FarmGridProps {
 	cells: BoardState['cells']
 	onMerge: (fromIndex: number, toIndex: number) => void
+	onMove: (fromIndex: number, toIndex: number) => void
 	mergeAnimation: MergeAnimationState | null
 	cols: number
-	balance: number
-	incomeRate: number
 }
 
-export function FarmBoard({ cells, onMerge, mergeAnimation, cols, balance, incomeRate }: FarmGridProps) {
+export function FarmBoard({ cells, onMerge, onMove, mergeAnimation, cols }: FarmGridProps) {
 	function handleDragEnd(event: any) {
 		const { operation, canceled } = event
 		if (canceled) return
@@ -33,12 +32,20 @@ export function FarmBoard({ cells, onMerge, mergeAnimation, cols, balance, incom
 		const toIndex = Number(target.id)
 		if (fromIndex === toIndex) return
 
-		onMerge(fromIndex, toIndex)
+		const fromCat = cells[fromIndex]
+		const toCat = cells[toIndex]
+		if (!fromCat) return
+
+		if (toCat === null) {
+			onMove(fromIndex, toIndex)
+		} else if (toCat.unitLevel === fromCat.unitLevel) {
+			onMerge(fromIndex, toIndex)
+		}
 	}
 
 	return (
 		<section style={{ WebkitTouchCallout: 'none' }} className="relative flex w-full select-none flex-col">
-			<FarmStats incomePerSecond={incomeRate} currentGold={balance} />
+			<FarmStats />
 			<div
 				style={{ aspectRatio: '936 / 744' }}
 				className="relative flex w-full flex-col bg-cover bg-center bg-[url(/pixel_big_carpet.png)]"

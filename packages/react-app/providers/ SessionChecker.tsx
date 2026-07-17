@@ -8,7 +8,7 @@ import { useGameStore } from '@/lib/store/useGameStore'
 
 export const SessionChecker = ({ children }: { children: ReactNode }) => {
 	const fetchingStatusRef = useRef(false)
-	const { setAuthStatus } = useGameStore()
+	const setAuthStatus = useGameStore((s) => s.setAuthStatus)
 
 	useEffect(() => {
 		const fetchStatus = async () => {

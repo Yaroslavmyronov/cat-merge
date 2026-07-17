@@ -1,4 +1,3 @@
-// components/shop/ShopModal.tsx
 'use client'
 import { Modal } from '@/components/ui/Modal'
 import { useLiveValue } from '@/hooks/useLiveValue'
@@ -9,20 +8,31 @@ import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { useShopModalStore } from '@/lib/store/useShopModalStore'
 import { BoardResponse } from '@/lib/types/board'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CatSprite } from './CatSprite'
 
 export const ShopModal = () => {
+	const [pending, setPending] = useState<number | null>(null)
 	const { close, isOpen } = useShopModalStore()
 	const { data: catsShop, loading, refresh } = useShopCats(isOpen)
-	const { board, setBoard } = useGameStore()
-	const [pending, setPending] = useState<number | null>(null)
-
+	const board = useGameStore((s) => s.board)
+	const setBoard = useGameStore((s) => s.setBoard)
 	const liveBalance = useLiveValue(
 		board?.balance ?? 0,
 		board?.incomeRate ?? 0,
 		board?.serverTime ?? '',
 	)
+
+	const itemRefs = useRef<Map<number, HTMLLIElement>>(new Map())
+	const ballanceRef = useRef(liveBalance)
+	ballanceRef.current = liveBalance
+
+	useEffect(() => {
+		if (!isOpen || !catsShop) return
+		const affordable = catsShop.findLast((c) => ballanceRef.current >= c.price)
+		if (!affordable) return
+		itemRefs.current.get(affordable.level)?.scrollIntoView({ block: 'center' })
+	}, [isOpen, catsShop])
 
 	const handleBuy = async (level: number) => {
 		if (pending !== null) return
@@ -33,8 +43,8 @@ export const ShopModal = () => {
 				method: 'POST',
 				body: JSON.stringify({ level }),
 			})
-			refresh()
 			setBoard(normalize(res))
+			await refresh()
 		} catch (error) {
 			console.error('Failed to buy cat:', error)
 			await refresh()
@@ -43,8 +53,8 @@ export const ShopModal = () => {
 		}
 	}
 
-	const balance = board?.balance ?? 0
 	const hasFreeSlot = board !== null && board.cells.some((c) => c === null)
+	const isFirstLoad = loading && !catsShop
 	return (
 		<Modal isOpen={isOpen} onClose={close}>
 			<section
@@ -76,46 +86,65 @@ export const ShopModal = () => {
 					</p>
 				</div>
 
-				<div className="min-h-0 grow overflow-y-auto p-3">
-					<ul className="space-y-2">
-						{loading && <p>Loading…</p>}
-						{catsShop?.map((cat) => {
-							const cantAfford = balance < cat.price
-							const isPending = pending === cat.level
-							const disabled = cantAfford || !hasFreeSlot || pending !== null
-							return (
-								<li key={cat.level}>
-									<article className="relative flex items-center gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2 justify-between">
-										<div className="relative shrink-0">
-											<CatSprite level={cat.level} size={56} />
-											<p className="absolute -top-1 right-0 border border-[#8B5E3C] bg-[#FFD54F] px-1.5 text-[9px] font-bold text-[#6B4423]">
-												<span className="sr-only">Level</span>
-												{cat.level}
-											</p>
+				<div className="min-h-full grow overflow-y-auto p-3">
+					{isFirstLoad ? (
+						<ul className="space-y-2">
+							{Array.from({ length: 6 }).map((_, i) => (
+								<li key={i}>
+									<div className="flex h-[76px] items-center gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2">
+										<div className="h-14 w-14 shrink-0 animate-pulse bg-[#E5D5B8]" />
+										<div className="ml-auto flex flex-col items-end gap-1">
+											<div className="h-4 w-24 animate-pulse bg-[#E5D5B8]" />
+											<div className="h-6 w-[100px] animate-pulse bg-[#E5D5B8]" />
 										</div>
-
-										<div className="flex min-w-0 flex-col items-end gap-1">
-											<p className="flex items-center gap-1 text-[10px] text-[#6B4423]">
-												Speed
-												<span className="border-2 border-[#4CAF50] bg-[#E8F5E9] px-2 py-0.5 font-bold text-[#2E7D32]">
-													+{formatCompact(cat.speed)}/s
-												</span>
-											</p>
-
-											<button
-												onClick={() => handleBuy(cat.level)}
-												type="button"
-												disabled={disabled}
-												className="w-[100px] border-2 py-1 text-[11px] font-bold border-[#C68B3C] bg-[#FFD54F] text-[#6B4423]"
-											>
-												{isPending ? '…' : !hasFreeSlot ? 'No space' : formatCompact(cat.price)}
-											</button>
-										</div>
-									</article>
+									</div>
 								</li>
-							)
-						})}
-					</ul>
+							))}
+						</ul>
+					) : (
+						<ul className="space-y-2">
+							{catsShop?.map((cat) => {
+								const cantAfford = liveBalance < cat.price
+								const disabled = cantAfford || !hasFreeSlot || pending !== null
+								return (
+									<li
+										key={cat.level}
+										ref={(el) => {
+											if (el) itemRefs.current.set(cat.level, el)
+											else itemRefs.current.delete(cat.level)
+										}}>
+										<article className="relative flex items-center gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2 justify-between">
+											<div className="relative shrink-0">
+												<CatSprite level={cat.level} size={56} />
+												<p className="absolute -top-1 right-0 border border-[#8B5E3C] bg-[#FFD54F] px-1.5 text-[9px] font-bold text-[#6B4423]">
+													<span className="sr-only">Level</span>
+													{cat.level}
+												</p>
+											</div>
+
+											<div className="flex min-w-0 flex-col items-end gap-1">
+												<p className="flex items-center gap-1 text-[10px] text-[#6B4423]">
+													Speed
+													<span className="border-2 border-[#4CAF50] bg-[#E8F5E9] px-2 py-0.5 font-bold text-[#2E7D32]">
+														+{formatCompact(cat.speed)}/s
+													</span>
+												</p>
+
+												<button
+													onClick={() => handleBuy(cat.level)}
+													type="button"
+													disabled={disabled}
+													className="w-[100px] border-2 py-1 text-[11px] font-bold border-[#C68B3C] bg-[#FFD54F] text-[#6B4423] disabled:opacity-50"
+												>
+													{!hasFreeSlot ? 'No space' : formatCompact(cat.price)}
+												</button>
+											</div>
+										</article>
+									</li>
+								)
+							})}
+						</ul>
+					)}
 				</div>
 			</section>
 		</Modal>

@@ -7,7 +7,7 @@ import { LeagueType } from '@/lib/types/player'
 import { LeagueIcon } from './ui/LeagueIcon'
 
 export const Header = () => {
-  const board = useGameStore((state) => state.board)
+  const board = useGameStore((s) => s.board)
   const { data: profile, loading } = useProfile()
 
   const liveTotalEarned = useLiveValue(
@@ -51,7 +51,7 @@ export const Header = () => {
           <p
             className="flex items-center gap-1.5"
             role="status"
-            aria-label={loading ? 'Loading league' : `${profile?.league ?? 'unknown'} league`}
+            aria-label={loading ? 'Loading league' : `${profile?.league ?? 'bronze'} league`}
           >
             {!loading && profile?.league && <LeagueIcon league={profile.league.toLowerCase() as LeagueType} />}
             <span

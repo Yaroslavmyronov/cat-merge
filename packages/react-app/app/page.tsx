@@ -3,7 +3,6 @@
 import { BottomNav } from '@/components/BottomNav'
 import { FarmBoard } from '@/components/FarmBoard'
 import { SpawnZone } from '@/components/SpawnZone'
-import { useLiveValue } from '@/hooks/useLiveValue'
 import { apiFetch } from '@/lib/api/fetchInstance'
 import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
@@ -15,7 +14,8 @@ export interface BoardState extends Omit<BoardResponse, 'cells'> {
 }
 
 export default function Home() {
-  const { board: state, setBoard } = useGameStore()
+  const state = useGameStore((s) => s.board)
+  const setBoard = useGameStore((s) => s.setBoard)
   const [loading, setLoading] = useState(true)
   const [isMerging, setIsMerging] = useState(false)
   const [mergeAnimation, setMergeAnimation] = useState<{
@@ -23,8 +23,6 @@ export default function Home() {
     toIndex: number
     level: number
   } | null>(null)
-
-  const liveBalance = useLiveValue(state?.balance ?? 0, state?.incomeRate ?? 0, state?.serverTime ?? '')
 
   useEffect(() => {
     let cancelled = false
@@ -78,6 +76,27 @@ export default function Home() {
     }
   }
 
+  async function handleMove(fromIndex: number, toIndex: number) {
+    if (!state || isMerging) return
+
+    const snapshot = state
+    const optimistic = [...state.cells]
+    optimistic[toIndex] = optimistic[fromIndex]
+    optimistic[fromIndex] = null
+    setBoard({ ...state, cells: optimistic })
+
+    try {
+      const response = await apiFetch<BoardResponse>('/board/move', {
+        method: 'POST',
+        body: JSON.stringify({ fromIndex, toIndex }),
+      })
+      setBoard(normalize(response))
+    } catch (error) {
+      setBoard(snapshot)
+      console.error('Failed to move cat:', error)
+    }
+  }
+
   return (
     <>
       <main className="flex flex-1 flex-col overflow-y-auto items-center justify-center px-4">
@@ -88,10 +107,11 @@ export default function Home() {
           <div className="mt-4 text-red-500">Не удалось загрузить доску</div>
         ) : (
           <FarmBoard
-            balance={liveBalance}
-            incomeRate={state.incomeRate}
+            // balance={liveBalance}
+            // incomeRate={state.incomeRate}
             cells={state.cells}
             onMerge={handleMerge}
+            onMove={handleMove}
             cols={4}
             mergeAnimation={mergeAnimation}
           />
