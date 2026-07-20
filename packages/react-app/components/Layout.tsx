@@ -2,6 +2,7 @@ import { FC, ReactNode } from 'react'
 import { AuthGate } from './AuthGate'
 import { Header } from './Header'
 import { ShopModal } from './ShopModal'
+import { WelcomeModal } from './WelcomeModal'
 
 interface Props {
   children: ReactNode
@@ -18,6 +19,7 @@ const Layout: FC<Props> = ({ children }) => {
         <AuthGate>
           <Header />
           {children}
+          <WelcomeModal />
           <ShopModal />
         </AuthGate>
       </div>
