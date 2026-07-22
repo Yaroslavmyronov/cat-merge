@@ -8,7 +8,7 @@ import {
 } from '@rainbow-me/rainbowkit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http } from 'wagmi'
-import { celo, celoAlfajores } from 'wagmi/chains'
+import { celo } from 'wagmi/chains'
 
 import { injectedWallet } from '@rainbow-me/rainbowkit/wallets'
 import { Toaster } from 'react-hot-toast'
@@ -23,17 +23,16 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: 'Celo Composer',
-    projectId: process.env.WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
-  }
+    appName: 'Cozy Cats',
+    projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '044601f65212332475a09bc14ceb3c34',
+  },
 )
 
-const config = createConfig({
+export const config = createConfig({
   connectors,
-  chains: [celo, celoAlfajores],
+  chains: [celo],
   transports: {
     [celo.id]: http(),
-    [celoAlfajores.id]: http(),
   },
 })
 

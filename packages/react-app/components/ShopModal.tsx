@@ -12,141 +12,137 @@ import { useEffect, useRef, useState } from 'react'
 import { CatSprite } from './CatSprite'
 
 export const ShopModal = () => {
-	const [pending, setPending] = useState<number | null>(null)
-	const { close, isOpen } = useShopModalStore()
-	const { data: catsShop, loading, refresh } = useShopCats(isOpen)
-	const board = useGameStore((s) => s.board)
-	const setBoard = useGameStore((s) => s.setBoard)
-	const liveBalance = useLiveValue(
-		board?.balance ?? 0,
-		board?.incomeRate ?? 0,
-		board?.serverTime ?? '',
-	)
+  const [pending, setPending] = useState<number | null>(null)
+  const { close, isOpen } = useShopModalStore()
+  const { data: catsShop, loading, refresh } = useShopCats(isOpen)
+  const board = useGameStore((s) => s.board)
+  const setBoard = useGameStore((s) => s.setBoard)
+  const liveBalance = useLiveValue(
+    board?.balance ?? 0,
+    board?.incomeRate ?? 0,
+    board?.serverTime ?? '',
+  )
 
-	const itemRefs = useRef<Map<number, HTMLLIElement>>(new Map())
-	const ballanceRef = useRef(liveBalance)
-	ballanceRef.current = liveBalance
+  const itemRefs = useRef<Map<number, HTMLLIElement>>(new Map())
+  const ballanceRef = useRef(liveBalance)
+  ballanceRef.current = liveBalance
 
-	useEffect(() => {
-		if (!isOpen || !catsShop) return
-		const affordable = catsShop.findLast((c) => ballanceRef.current >= c.price)
-		if (!affordable) return
-		itemRefs.current.get(affordable.level)?.scrollIntoView({ block: 'center' })
-	}, [isOpen, catsShop])
+  useEffect(() => {
+    if (!isOpen || !catsShop) return
+    const affordable = catsShop.findLast((c) => ballanceRef.current >= c.price)
+    if (!affordable) return
+    itemRefs.current.get(affordable.level)?.scrollIntoView({ block: 'center' })
+  }, [isOpen, catsShop])
 
-	const handleBuy = async (level: number) => {
-		if (pending !== null) return
+  const handleBuy = async (level: number) => {
+    if (pending !== null) return
 
-		setPending(level)
-		try {
-			const res = await apiFetch<BoardResponse>('/board/buy-unit', {
-				method: 'POST',
-				body: JSON.stringify({ level }),
-			})
-			setBoard(normalize(res))
-			await refresh()
-		} catch (error) {
-			console.error('Failed to buy cat:', error)
-			await refresh()
-		} finally {
-			setPending(null)
-		}
-	}
+    setPending(level)
+    try {
+      const res = await apiFetch<BoardResponse>('/board/buy-unit', {
+        method: 'POST',
+        body: JSON.stringify({ level }),
+      })
+      setBoard(normalize(res))
+      await refresh()
+    } catch (error) {
+      console.error('Failed to buy cat:', error)
+      await refresh()
+    } finally {
+      setPending(null)
+    }
+  }
 
-	const hasFreeSlot = board !== null && board.cells.some((c) => c === null)
-	const isFirstLoad = loading && !catsShop
-	return (
-		<Modal isOpen={isOpen} onClose={close}>
-			<section
-				aria-labelledby="shop-title"
-				className="relative flex max-h-[600px] w-[calc(100%-32px)] max-w-[380px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
-			>
-				{/* Header */}
-				<header className="relative flex shrink-0 items-center justify-center py-3">
-					<h2
-						id="shop-title"
-						className="border-2 border-[#8B5E3C] bg-[#FFF8E7] px-6 py-1 text-sm font-bold text-[#6B4423]"
-					>
-						Cat Shop
-					</h2>
-					<button
-						type="button"
-						onClick={close}
-						aria-label="Close shop"
-						className="absolute -right-2 -top-2 h-8 w-8 border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white"
-					>
-						✕
-					</button>
-				</header>
-
-				<div className="flex shrink-0 items-center justify-start border-2 border-[#D4B896] bg-[#FFF8E7] p-2 mx-3 mb-2">
-					<p className="flex items-center gap-1 text-xs font-bold text-[#6B4423]">
-						<img src="pixel_coin.png" alt="Coins" className="h-4 w-4" />
-						{formatCompact(liveBalance)}
-					</p>
-				</div>
-
-				<div className="min-h-full grow overflow-y-auto p-3">
-					{isFirstLoad ? (
-						<ul className="space-y-2">
-							{Array.from({ length: 6 }).map((_, i) => (
-								<li key={i}>
-									<div className="flex h-[76px] items-center gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2">
-										<div className="h-14 w-14 shrink-0 animate-pulse bg-[#E5D5B8]" />
-										<div className="ml-auto flex flex-col items-end gap-1">
-											<div className="h-4 w-24 animate-pulse bg-[#E5D5B8]" />
-											<div className="h-6 w-[100px] animate-pulse bg-[#E5D5B8]" />
-										</div>
-									</div>
-								</li>
-							))}
-						</ul>
-					) : (
-						<ul className="space-y-2">
-							{catsShop?.map((cat) => {
-								const cantAfford = liveBalance < cat.price
-								const disabled = cantAfford || !hasFreeSlot || pending !== null
-								return (
-									<li
-										key={cat.level}
-										ref={(el) => {
-											if (el) itemRefs.current.set(cat.level, el)
-											else itemRefs.current.delete(cat.level)
-										}}>
-										<article className="relative flex items-center gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2 justify-between">
-											<div className="relative shrink-0">
-												<CatSprite level={cat.level} size={56} />
-												<p className="absolute -top-1 right-0 border border-[#8B5E3C] bg-[#FFD54F] px-1.5 text-[9px] font-bold text-[#6B4423]">
-													<span className="sr-only">Level</span>
-													{cat.level}
-												</p>
-											</div>
-
-											<div className="flex min-w-0 flex-col items-end gap-1">
-												<p className="flex items-center gap-1 text-[10px] text-[#6B4423]">
-													Speed
-													<span className="border-2 border-[#4CAF50] bg-[#E8F5E9] px-2 py-0.5 font-bold text-[#2E7D32]">
-														+{formatCompact(cat.speed)}/s
-													</span>
-												</p>
-
-												<button
-													onClick={() => handleBuy(cat.level)}
-													type="button"
-													disabled={disabled}
-													className="w-[100px] border-2 py-1 text-[11px] font-bold border-[#C68B3C] bg-[#FFD54F] text-[#6B4423] disabled:opacity-50"
-												>
-													{!hasFreeSlot ? 'No space' : formatCompact(cat.price)}
-												</button>
-											</div>
-										</article>
-									</li>
-								)
-							})}
-						</ul>
-					)}
-				</div>
-			</section>
-		</Modal>
-	)
+  const hasFreeSlot = board !== null && board.cells.some((c) => c === null)
+  const isFirstLoad = loading && !catsShop
+  return (
+    <Modal isOpen={isOpen} onClose={close}>
+      <section
+        aria-labelledby="shop-title"
+        className="relative flex h-[600px] w-[calc(100%-32px)] max-w-[380px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
+      >
+        <header className="relative flex shrink-0 items-center justify-center py-3">
+          <h2
+            id="shop-title"
+            className="border-2 border-[#8B5E3C] bg-[#FFF8E7] px-6 py-1 text-sm font-bold text-[#6B4423]"
+          >
+            Cat Shop
+          </h2>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close shop"
+            className="absolute -right-2 -top-2 h-8 w-8 border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white"
+          >
+            ✕
+          </button>
+        </header>
+        <div className="mx-3 mb-2 flex shrink-0 items-center justify-start border-2 border-[#D4B896] bg-[#FFF8E7] p-2">
+          <p className="flex items-center gap-1 text-xs font-bold text-[#6B4423]">
+            <img src="pixel_coin.png" alt="Coins" className="h-4 w-4" />
+            {formatCompact(liveBalance)}
+          </p>
+        </div>
+        <div className="grow overflow-y-auto p-3">
+          {isFirstLoad ? (
+            <ul className="space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <li key={i}>
+                  <div className="flex h-[76px] items-center gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2">
+                    <div className="h-14 w-14 shrink-0 animate-pulse bg-[#E5D5B8]" />
+                    <div className="ml-auto flex flex-col items-end gap-1">
+                      <div className="h-4 w-24 animate-pulse bg-[#E5D5B8]" />
+                      <div className="h-6 w-[100px] animate-pulse bg-[#E5D5B8]" />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <ul className="space-y-2">
+              {catsShop?.map((cat) => {
+                const cantAfford = liveBalance < cat.price
+                const disabled = cantAfford || !hasFreeSlot || pending !== null
+                return (
+                  <li
+                    key={cat.level}
+                    ref={(el) => {
+                      if (el) itemRefs.current.set(cat.level, el)
+                      else itemRefs.current.delete(cat.level)
+                    }}
+                  >
+                    <article className="relative flex items-center justify-between gap-2 border-2 border-[#8B5E3C] bg-[#FFF8E7] p-2">
+                      <div className="relative shrink-0">
+                        <CatSprite level={cat.level} size={56} />
+                        <p className="absolute -top-1 right-0 border border-[#8B5E3C] bg-[#FFD54F] px-1.5 text-[9px] font-bold text-[#6B4423]">
+                          <span className="sr-only">Level</span>
+                          {cat.level}
+                        </p>
+                      </div>
+                      <div className="flex min-w-0 flex-col items-end gap-1">
+                        <p className="flex items-center gap-1 text-[10px] text-[#6B4423]">
+                          Speed
+                          <span className="border-2 border-[#4CAF50] bg-[#E8F5E9] px-2 py-0.5 font-bold text-[#2E7D32]">
+                            +{formatCompact(cat.speed)}/s
+                          </span>
+                        </p>
+                        <button
+                          onClick={() => handleBuy(cat.level)}
+                          type="button"
+                          disabled={disabled}
+                          className="w-[100px] border-2 border-[#C68B3C] bg-[#FFD54F] py-1 text-[11px] font-bold text-[#6B4423] disabled:opacity-50"
+                        >
+                          {!hasFreeSlot ? 'No space' : formatCompact(cat.price)}
+                        </button>
+                      </div>
+                    </article>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      </section>
+    </Modal>
+  )
 }

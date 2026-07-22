@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api/fetchInstance'
 import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { BoardCell, BoardResponse } from '@/lib/types/board'
+import { Player } from '@/lib/types/player'
 import { useEffect, useState } from 'react'
 
 export interface BoardState extends Omit<BoardResponse, 'cells'> {
@@ -16,6 +17,8 @@ export interface BoardState extends Omit<BoardResponse, 'cells'> {
 export default function Home() {
   const state = useGameStore((s) => s.board)
   const setBoard = useGameStore((s) => s.setBoard)
+  const setProfile = useGameStore((s) => s.setProfile)
+  const setProfileStatus = useGameStore((s) => s.setProfileStatus)
   const [loading, setLoading] = useState(true)
   const [isMerging, setIsMerging] = useState(false)
   const [mergeAnimation, setMergeAnimation] = useState<{
@@ -27,14 +30,26 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false
 
+    apiFetch<Player>('/player/profile')
+      .then((p) => {
+        if (!cancelled) {
+          setProfile(p)
+          setProfileStatus('ready')
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setProfileStatus('error')
+        console.error('Failed to fetch profile state:', e)
+      })
+
     apiFetch<BoardResponse>('/board/get-board')
       .then((data) => {
         if (!cancelled) {
           setBoard(normalize(data))
         }
       })
-      .catch((error) => {
-        console.error('Failed to fetch board state:', error)
+      .catch((e) => {
+        console.error('Failed to fetch board state:', e)
       })
       .finally(() => {
         if (!cancelled) {
@@ -71,7 +86,9 @@ export default function Home() {
       setMergeAnimation(null)
       setIsMerging(false)
 
-      const fresh = await apiFetch<BoardResponse>('/board/get-board').catch(() => null)
+      const fresh = await apiFetch<BoardResponse>('/board/get-board').catch(
+        () => null,
+      )
       if (fresh) setBoard(normalize(fresh))
     }
   }
@@ -99,7 +116,7 @@ export default function Home() {
 
   return (
     <>
-      <main className="flex flex-1 flex-col overflow-y-auto items-center justify-center px-4">
+      <main className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4">
         <SpawnZone />
         {loading ? (
           <div className="mt-4 text-gray-500">Loading...</div>

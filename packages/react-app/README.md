@@ -4,7 +4,6 @@ Celo Composer support React boilerplate template with TailwindCSS. This is a sta
 
 ## Setup & Installation
 
-
 ### Set environment variables
 
 Create a copy of `.env.example` and rename it to `.env`.
@@ -16,7 +15,7 @@ Create a WalletConnect Cloud Project ID from [WalletConnect Cloud](https://cloud
 Provide the WalletConnect Cloud Project ID in your `.env` file to use WalletConnect in your project. As shown in the `.env.example` file.
 
 ```typescript
-NEXT_PUBLIC_WC_PROJECT_ID=YOUR_EXAMPLE_PROJECT_ID;
+NEXT_PUBLIC_WC_PROJECT_ID = YOUR_EXAMPLE_PROJECT_ID;
 ```
 
 ### Install dependencies

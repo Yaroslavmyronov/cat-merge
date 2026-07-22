@@ -1,4 +1,3 @@
-import { useProfile } from '@/hooks/useProfile'
 import { formatCompact, formatFull } from '@/lib/formatCompact'
 
 import { useLiveValue } from '@/hooks/useLiveValue'
@@ -8,7 +7,8 @@ import { LeagueIcon } from './ui/LeagueIcon'
 
 export const Header = () => {
   const board = useGameStore((s) => s.board)
-  const { data: profile, loading } = useProfile()
+  const profile = useGameStore((s) => s.profile)
+  const profileStatus = useGameStore((s) => s.profileStatus)
 
   const liveTotalEarned = useLiveValue(
     board?.totalEarned ?? 0,
@@ -31,7 +31,9 @@ export const Header = () => {
             className="flex items-center gap-1.5"
             role="status"
             aria-label={
-              loading ? 'Loading balance' : `${formatFull(liveTotalEarned)} gold coins`
+              profileStatus === 'loading'
+                ? 'Loading balance'
+                : `${formatFull(liveTotalEarned)} gold coins`
             }
           >
             <img
@@ -44,21 +46,27 @@ export const Header = () => {
               aria-hidden="true"
               className="text-sm font-medium tabular-nums text-[#4A3540]"
             >
-              {loading ? '—' : formatCompact(liveTotalEarned)}
+              {profileStatus === 'loading' ? '—' : formatCompact(liveTotalEarned)}
             </span>
           </p>
 
           <p
             className="flex items-center gap-1.5"
             role="status"
-            aria-label={loading ? 'Loading league' : `${profile?.league ?? 'bronze'} league`}
+            aria-label={
+              profileStatus === 'loading'
+                ? 'Loading league'
+                : `${profile?.league ?? 'bronze'} league`
+            }
           >
-            {!loading && profile?.league && <LeagueIcon league={profile.league.toLowerCase() as LeagueType} />}
+            {profileStatus !== 'loading' && profile?.league && (
+              <LeagueIcon league={profile.league.toLowerCase() as LeagueType} />
+            )}
             <span
               aria-hidden="true"
               className="text-sm font-medium uppercase text-[#8A5A45]"
             >
-              {loading ? '—' : (profile?.league ?? '—')}
+              {profileStatus === 'loading' ? '—' : (profile?.league ?? '—')}
             </span>
           </p>
         </div>
