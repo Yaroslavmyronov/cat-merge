@@ -1,9 +1,9 @@
 import { CUSD_MAINNET, EventType, MERGE_CAT_ADDRESS } from '@/lib/contracts/mergeCat'
 import { getParsedError } from '@/lib/getParsedError'
+import { isUserRejection } from '@/lib/isUserRejection'
 import { MergeCatABI } from '@/MergeCat'
 import { config } from '@/providers/AppProvider'
 import { useState } from 'react'
-import toast from 'react-hot-toast'
 import { erc20Abi } from 'viem'
 import { useAccount } from 'wagmi'
 import { getChainId, readContract, switchChain, waitForTransactionReceipt, writeContract } from 'wagmi/actions'
@@ -11,7 +11,7 @@ import { celo } from 'wagmi/chains'
 
 type Step = 'idle' | 'approving' | 'purchasing' | 'confirming'
 
-export function usePurchaseBoost() {
+export function usePurchase() {
 	const { address } = useAccount()
 	const [step, setStep] = useState<Step>('idle')
 	const [pendingType, setPendingType] = useState<EventType | null>(null)
@@ -77,9 +77,9 @@ export function usePurchaseBoost() {
 
 			setStep('confirming')
 			await waitForTransactionReceipt(config, { hash: buyHash })
-			toast.success('Boost activated!')
 			return true
 		} catch (e) {
+			if (isUserRejection(e)) return false
 			setError(getParsedError(e))
 			return false
 		} finally {

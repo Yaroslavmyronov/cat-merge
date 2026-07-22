@@ -4,7 +4,7 @@ import { Player } from '@/lib/types/player'
 import { useEffect } from 'react'
 
 export function useProfileEvents() {
-	const setAwaitingBoost = useGameStore((s) => s.setAwaitingBoost)
+	const setAwaitingPurchase = useGameStore((s) => s.setAwaitingPurchase)
 	const setProfile = useGameStore((s) => s.setProfile)
 	const authStatus = useGameStore((s) => s.authStatus)
 
@@ -19,7 +19,7 @@ export function useProfileEvents() {
 		es.addEventListener('purchase', async () => {
 			const fresh = await apiFetch<Player>('/player/profile')
 			setProfile(fresh)
-			setAwaitingBoost(false)
+			setAwaitingPurchase(false)
 		})
 
 		es.onerror = () => {

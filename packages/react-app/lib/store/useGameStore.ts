@@ -13,8 +13,8 @@ type GameState = {
   setProfile: (p: Player) => void
   profileStatus: 'loading' | 'error' | 'ready'
   setProfileStatus: (s: 'loading' | 'error' | 'ready') => void
-  awaitingBoost: boolean
-  setAwaitingBoost: (v: boolean) => void
+  awaitingPurchase: boolean
+  setAwaitingPurchase: (v: boolean) => void
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -26,6 +26,6 @@ export const useGameStore = create<GameState>((set) => ({
   setProfile: (profile) => set({ profile }),
   profileStatus: 'loading',
   setProfileStatus: (profileStatus) => set({ profileStatus }),
-  awaitingBoost: false,
-  setAwaitingBoost: (awaitingBoost) => set({ awaitingBoost }),
+  awaitingPurchase: false,
+  setAwaitingPurchase: (awaitingPurchase) => set({ awaitingPurchase }),
 }))

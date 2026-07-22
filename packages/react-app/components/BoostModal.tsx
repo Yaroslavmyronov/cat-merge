@@ -1,6 +1,6 @@
 'use client'
 import { Modal } from '@/components/ui/Modal'
-import { usePurchaseBoost } from '@/hooks/usePurchaseBoost'
+import { usePurchase } from '@/hooks/usePurchase'
 import { CUSD_MAINNET, EventType, MERGE_CAT_ADDRESS } from '@/lib/contracts/mergeCat'
 import { formatCompact } from '@/lib/formatCompact'
 import { formatTimer } from '@/lib/formatTimer'
@@ -15,14 +15,14 @@ import { LoadingDots } from './ui/LoadingDots'
 
 export const BoostModal = () => {
   const { close, isOpen } = useBoostModalStore()
-  const setAwaitingBoost = useGameStore((s) => s.setAwaitingBoost)
+  const setAwaitingPurchase = useGameStore((s) => s.setAwaitingPurchase)
   const boostExpiresAt = useGameStore((s) => s.profile?.boostExpiresAt)
   const boostActivatedAt = useGameStore((s) => s.profile?.boostActivatedAt)
-  const awaitingBoost = useGameStore((s) => s.awaitingBoost)
+  const awaitingPurchase = useGameStore((s) => s.awaitingPurchase)
   const incomeRate = useGameStore((s) => s.board?.incomeRate ?? 0)
   const SEGMENTS = 16
 
-  const { buy, step, error, pendingType } = usePurchaseBoost()
+  const { buy, step, error, pendingType } = usePurchase()
 
   const isBoostActive = boostExpiresAt != null &&
     new Date(boostExpiresAt).getTime() > Date.now()
@@ -46,7 +46,7 @@ export const BoostModal = () => {
   const handleBuy = async (eventType: EventType) => {
     const ok = await buy(eventType)
     if (!ok) return
-    setAwaitingBoost(true)
+    setAwaitingPurchase(true)
   }
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export const BoostModal = () => {
               {formatTimer(timeLeft)}
             </div>
             <div className="mx-4 mb-1 text-center text-[10px] text-[#A8794C]">
-              {awaitingBoost ? (
+              {awaitingPurchase ? (
                 <span className="inline-flex items-center gap-1">
                   <LoadingDots /> Adding time…
                 </span>
