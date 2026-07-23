@@ -21,6 +21,7 @@ export const WelcomeModal = () => {
   const [claimError, setClaimError] = useState<string | null>(null)
   const bonusClaimAvailable = useGameStore((s) => s.profile?.bonusClaimAvailable)
   const setAwaitingPurchase = useGameStore((s) => s.setAwaitingPurchase)
+  const awaitingPurchase = useGameStore((s) => s.awaitingPurchase)
   const setProfile = useGameStore((s) => s.setProfile)
   const claimableGold = useGameStore((s) => s.profile?.claimableGold ?? 0)
   const lastCollectedAt = useGameStore((s) => s.profile?.lastCollectedAt)
@@ -34,7 +35,7 @@ export const WelcomeModal = () => {
     abi: MergeCatABI,
     functionName: 'priceOf',
     args: [CUSD_MAINNET, EventType.OfflineReward],
-    query: { enabled: true },
+    query: { enabled: isOpen },
   })
 
   console.log(rewardPrice)
@@ -63,6 +64,12 @@ export const WelcomeModal = () => {
   }
 
   useEffect(() => {
+    if (isOpen && bonusClaimAvailable === false && shownRef.current) {
+      close()
+    }
+  }, [isOpen, bonusClaimAvailable, close])
+
+  useEffect(() => {
     if (shownRef.current) return
     if (!bonusClaimAvailable) return
     shownRef.current = true
@@ -70,7 +77,7 @@ export const WelcomeModal = () => {
   }, [bonusClaimAvailable, open])
 
   return (
-    <Modal isOpen={true} onClose={close}>
+    <Modal isOpen={isOpen} onClose={close}>
       <section
         aria-labelledby="welcome-title"
         className="relative flex w-[300px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
@@ -146,9 +153,13 @@ export const WelcomeModal = () => {
                   : 'Activating…'}
             </p>
           )}
-          {(error || claimError) && (
-            <p className="px-4 pb-2 text-center text-[11px] text-[#C0392B]">{error || claimError}
+          {awaitingPurchase && step === 'idle' && (
+            <p className="flex items-center justify-center gap-1 px-4 pb-2 text-center text-[11px] text-[#A8794C]">
+              <LoadingDots /> Doubling reward…
             </p>
+          )}
+          {(error || claimError) && (
+            <p className="px-4 pb-2 text-center text-[11px] text-[#C0392B]">{error || claimError}</p>
           )}
         </div>
       </section>
