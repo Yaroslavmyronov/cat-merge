@@ -5,8 +5,10 @@ import { apiFetch } from '@/lib/api/fetchInstance'
 import { CUSD_MAINNET, EventType, MERGE_CAT_ADDRESS } from '@/lib/contracts/mergeCat'
 import { formatAway } from '@/lib/formatAway'
 import { formatCompact } from '@/lib/formatCompact'
+import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { useWelcomeModalStore } from '@/lib/store/useWelcomeModalStore'
+import { BoardResponse } from '@/lib/types/board'
 import { Player } from '@/lib/types/player'
 import { MergeCatABI } from '@/MergeCat'
 import { useEffect, useRef, useState } from 'react'
@@ -23,6 +25,7 @@ export const WelcomeModal = () => {
   const setAwaitingPurchase = useGameStore((s) => s.setAwaitingPurchase)
   const awaitingPurchase = useGameStore((s) => s.awaitingPurchase)
   const setProfile = useGameStore((s) => s.setProfile)
+  const setBoard = useGameStore((s) => s.setBoard)
   const claimableGold = useGameStore((s) => s.profile?.claimableGold ?? 0)
   const lastCollectedAt = useGameStore((s) => s.profile?.lastCollectedAt)
 
@@ -38,7 +41,6 @@ export const WelcomeModal = () => {
     query: { enabled: isOpen },
   })
 
-  console.log(rewardPrice)
 
   const shownRef = useRef(false)
 
@@ -47,8 +49,16 @@ export const WelcomeModal = () => {
     setPending(true)
 
     try {
+      const wasBonusAvailable = useGameStore.getState().profile?.bonusClaimAvailable
+
       const fresh = await apiFetch<Player>('/player/collect', { method: 'POST' })
       setProfile(fresh)
+
+      if (wasBonusAvailable && !fresh.bonusClaimAvailable) {
+        const board = await apiFetch<BoardResponse>('/board/get-board')
+        setBoard(normalize(board))
+      }
+
       close()
     } catch (e) {
       setClaimError('Failed to collect, try again')
@@ -82,14 +92,14 @@ export const WelcomeModal = () => {
         aria-labelledby="welcome-title"
         className="relative flex w-[300px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
       >
-        <button
+        {/* <button
           type="button"
           onClick={close}
           aria-label="Close"
           className="absolute -right-3 -top-3 z-10 h-8 w-8 border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white"
         >
           ✕
-        </button>
+        </button> */}
 
         <header className="flex justify-center pb-2 pt-3">
           <h2
@@ -119,7 +129,7 @@ export const WelcomeModal = () => {
 
         <div className="px-4 pb-2">
 
-          <button className="w-full border-2 border-[#4F7A28] bg-[#7EB84A] py-2.5 text-sm font-bold text-white disabled:opacity-50" type="button" onClick={handleClaim} disabled={pending || step !== 'idle'}>
+          <button className="w-full border-2 border-[#4F7A28] bg-[#7EB84A] py-2.5 text-sm font-bold text-white disabled:opacity-50" type="button" onClick={handleClaim} disabled={pending || step !== 'idle' || awaitingPurchase}>
             {pending ? '…' : 'Collect'}
           </button>
         </div>
@@ -128,7 +138,7 @@ export const WelcomeModal = () => {
           <button
             onClick={handleClaimX2}
             type="button"
-            disabled={pending || step !== 'idle'}
+            disabled={pending || step !== 'idle' || awaitingPurchase}
             className="flex w-full items-center justify-between border-2 border-[#C68B3C] bg-[#FFD54F] px-3 py-2 disabled:opacity-50 mb-2"
           >
             {pendingType === EventType.OfflineReward ? (

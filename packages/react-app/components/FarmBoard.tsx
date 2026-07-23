@@ -52,7 +52,7 @@ export function FarmBoard({
   return (
     <section
       style={{ WebkitTouchCallout: 'none' }}
-      className="relative flex w-full select-none flex-col"
+      className="relative flex w-full select-none flex-col "
     >
       <FarmStats />
       <div

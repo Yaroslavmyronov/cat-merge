@@ -1,11 +1,14 @@
 import { apiFetch } from '@/lib/api/fetchInstance'
+import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
+import { BoardResponse } from '@/lib/types/board'
 import { Player } from '@/lib/types/player'
 import { useEffect } from 'react'
 
 export function useProfileEvents() {
 	const setAwaitingPurchase = useGameStore((s) => s.setAwaitingPurchase)
 	const setProfile = useGameStore((s) => s.setProfile)
+	const setBoard = useGameStore((s) => s.setBoard)
 	const authStatus = useGameStore((s) => s.authStatus)
 
 	useEffect(() => {
@@ -17,9 +20,21 @@ export function useProfileEvents() {
 		)
 
 		es.addEventListener('purchase', async () => {
-			const fresh = await apiFetch<Player>('/player/profile')
-			setProfile(fresh)
-			setAwaitingPurchase(false)
+			try {
+				const wasBonusAvailable = useGameStore.getState().profile?.bonusClaimAvailable
+
+				const fresh = await apiFetch<Player>('/player/profile')
+				setProfile(fresh)
+
+				if (wasBonusAvailable && !fresh.bonusClaimAvailable) {
+					const board = await apiFetch<BoardResponse>('/board/get-board')
+					setBoard(normalize(board))
+				}
+			} catch (e) {
+				console.error('Failed to refresh after purchase:', e)
+			} finally {
+				setAwaitingPurchase(false)
+			}
 		})
 
 		es.onerror = () => {

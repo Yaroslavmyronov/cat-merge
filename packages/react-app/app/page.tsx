@@ -2,19 +2,19 @@
 
 import { BottomNav } from '@/components/BottomNav'
 import { FarmBoard } from '@/components/FarmBoard'
-import { SpawnZone } from '@/components/SpawnZone'
 import { apiFetch } from '@/lib/api/fetchInstance'
 import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { BoardCell, BoardResponse } from '@/lib/types/board'
 import { Player } from '@/lib/types/player'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface BoardState extends Omit<BoardResponse, 'cells'> {
   cells: (BoardCell | null)[]
 }
 
 export default function Home() {
+  const loadedRef = useRef(false)
   const state = useGameStore((s) => s.board)
   const setBoard = useGameStore((s) => s.setBoard)
   const setProfile = useGameStore((s) => s.setProfile)
@@ -28,34 +28,34 @@ export default function Home() {
   } | null>(null)
 
   useEffect(() => {
+    if (loadedRef.current) return
+    loadedRef.current = true
+
     let cancelled = false
 
     apiFetch<Player>('/player/profile')
       .then((p) => {
-        if (!cancelled) {
-          setProfile(p)
-          setProfileStatus('ready')
+        if (cancelled) return
+        setProfile(p)
+        setProfileStatus('ready')
+        if (!p.bonusClaimAvailable) {
+          return apiFetch<BoardResponse>('/board/get-board')
+            .then((board) => {
+              if (!cancelled) setBoard(normalize(board))
+            })
+            .catch((e) => {
+              console.error('Failed to fetch board:', e)
+            })
         }
       })
       .catch((e) => {
         if (!cancelled) setProfileStatus('error')
-        console.error('Failed to fetch profile state:', e)
-      })
-
-    apiFetch<BoardResponse>('/board/get-board')
-      .then((data) => {
-        if (!cancelled) {
-          setBoard(normalize(data))
-        }
-      })
-      .catch((e) => {
-        console.error('Failed to fetch board state:', e)
+        console.error('Failed to fetch profile:', e)
       })
       .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
+        if (!cancelled) setLoading(false)
       })
+
     return () => {
       cancelled = true
     }
@@ -116,16 +116,31 @@ export default function Home() {
 
   return (
     <>
-      <main className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4">
-        <SpawnZone />
+      <main className="flex flex-1 flex-col items-center justify-end overflow-y-auto px-4 pb-4">
         {loading ? (
-          <div className="mt-4 text-gray-500">Loading...</div>
+          <div
+            style={{ aspectRatio: '936 / 744' }}
+            className="relative flex w-full flex-col bg-[url(/pixel_big_carpet.png)] bg-cover bg-center"
+          >
+            <div className="relative bottom-[14px] flex-1 p-4">
+              <div className="grid grid-cols-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="relative flex aspect-square items-end justify-center">
+                    <img
+                      src="/cat-bed.png"
+                      alt=""
+                      className="pixel-pulse absolute bottom-0 left-1/2 h-2/5 w-[70%] -translate-x-1/2 object-contain"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         ) : !state ? (
           <div className="mt-4 text-red-500">Не удалось загрузить доску</div>
         ) : (
           <FarmBoard
-            // balance={liveBalance}
-            // incomeRate={state.incomeRate}
             cells={state.cells}
             onMerge={handleMerge}
             onMove={handleMove}
