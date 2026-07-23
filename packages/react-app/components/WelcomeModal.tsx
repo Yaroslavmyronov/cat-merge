@@ -81,6 +81,7 @@ export const WelcomeModal = () => {
 
   useEffect(() => {
     if (shownRef.current) return
+    console.log(bonusClaimAvailable)
     if (!bonusClaimAvailable) return
     shownRef.current = true
     open()

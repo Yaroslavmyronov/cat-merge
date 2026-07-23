@@ -24,6 +24,7 @@ export function useProfileEvents() {
 				const wasBonusAvailable = useGameStore.getState().profile?.bonusClaimAvailable
 
 				const fresh = await apiFetch<Player>('/player/profile')
+				console.log('useProfileEvents', fresh)
 				setProfile(fresh)
 
 				if (wasBonusAvailable && !fresh.bonusClaimAvailable) {

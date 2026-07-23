@@ -31,34 +31,23 @@ export default function Home() {
     if (loadedRef.current) return
     loadedRef.current = true
 
-    let cancelled = false
-
     apiFetch<Player>('/player/profile')
       .then((p) => {
-        if (cancelled) return
         setProfile(p)
         setProfileStatus('ready')
         if (!p.bonusClaimAvailable) {
           return apiFetch<BoardResponse>('/board/get-board')
-            .then((board) => {
-              if (!cancelled) setBoard(normalize(board))
-            })
+            .then((board) => setBoard(normalize(board)))
             .catch((e) => {
               console.error('Failed to fetch board:', e)
             })
         }
       })
       .catch((e) => {
-        if (!cancelled) setProfileStatus('error')
+        setProfileStatus('error')
         console.error('Failed to fetch profile:', e)
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
+      .finally(() => setLoading(false))
   }, [])
 
   async function handleMerge(fromIndex: number, toIndex: number) {
