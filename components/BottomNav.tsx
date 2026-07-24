@@ -1,6 +1,7 @@
 import { useBoostModalStore } from '@/lib/store/useBoostModalStore'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { useShopModalStore } from '@/lib/store/useShopModalStore'
+import { useTopModalStore } from '@/lib/store/useTopModalStore'
 import { useWelcomeModalStore } from '@/lib/store/useWelcomeModalStore'
 import { CupIcon } from './ui/CupIcon'
 import { MeowpediaIcon } from './ui/MeowpediaIcon'
@@ -9,8 +10,9 @@ import { ShopIcon } from './ui/ShopIcon'
 import { UpgradeIcon } from './ui/UpgradeIcon'
 
 export const BottomNav = () => {
-  const { open: openShop } = useShopModalStore()
-  const { open: openBoost } = useBoostModalStore()
+  const openShop = useShopModalStore((s) => s.open)
+  const openBoost = useBoostModalStore((s) => s.open)
+  const openTop = useTopModalStore((s) => s.open)
   const bonusClaimAvailable = useGameStore((s) => s.profile?.bonusClaimAvailable)
   const openWelcome = useWelcomeModalStore((s) => s.open)
   const handleShop = () => {
@@ -32,7 +34,7 @@ export const BottomNav = () => {
         <NavItem item={{ label: 'Boost' }} onClick={openBoost}>
           <UpgradeIcon className="h-[25px] w-[25px]" />
         </NavItem>
-        <NavItem item={{ label: 'Top' }}>
+        <NavItem item={{ label: 'Top' }} onClick={openTop}>
           <CupIcon className="h-[25px] w-[25px]" />
         </NavItem>
         <NavItem item={{ label: 'Cats' }}>

@@ -56,7 +56,7 @@ export const ShopModal = () => {
   const hasFreeSlot = board !== null && board.cells.some((c) => c === null)
   const isFirstLoad = loading && !catsShop
   return (
-    <Modal isOpen={isOpen} onClose={close}>
+    <Modal isOpen={isOpen}>
       <section
         aria-labelledby="shop-title"
         className="relative flex h-[600px] w-[calc(100%-32px)] max-w-[380px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
