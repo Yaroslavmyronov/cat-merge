@@ -15,7 +15,7 @@ export function useProfileEvents() {
 		if (authStatus !== 'authenticated') return
 
 		const es = new EventSource(
-			`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/stream`,
+			`${process.env.NEXT_PUBLIC_API_URL}/notifications/stream`,
 			{ withCredentials: true },
 		)
 
