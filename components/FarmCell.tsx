@@ -26,16 +26,10 @@ export function FarmCell({
     <div
       ref={dropRef}
       role="gridcell"
-      aria-label={cat ? `Кот уровня ${cat.unitLevel}` : 'Пустая клетка'}
+      aria-label={cat ? `Cat level ${cat.unitLevel}` : 'Empty cell'}
       className={`relative flex aspect-square items-end justify-center rounded ${isDropTarget ? 'bg-yellow-200/30' : ''
         }`}
     >
-      {cat && !isDragging && !hidden && !mergeInfo && (
-        <div className="pointer-events-none absolute left-[80%] top-0 z-10 flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center border-[2px] border-[#8A6D12] bg-[#F5E9D3] text-[8px] font-bold text-[#5C4A1E]">
-          {cat?.unitLevel}
-        </div>
-      )}
-
       <img
         src="/cat-bed.png"
         alt=""
@@ -53,7 +47,13 @@ export function FarmCell({
             style={{ opacity: isDragging ? 0.5 : 1 }}
             className="absolute bottom-[14px] left-[55%] -translate-x-1/2"
           >
-            <CatSprite level={cat.unitLevel} size={50} />
+            <CatSprite level={cat.unitLevel} size={50} >
+              {cat && !isDragging && !hidden && !mergeInfo && (
+                <div className="pointer-events-none absolute -right-[14px] -top-[8px] z-10 flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center border-[2px] border-[#8A6D12] bg-[#F5E9D3] text-[8px] font-bold text-[#5C4A1E]">
+                  {cat?.unitLevel}
+                </div>
+              )}
+            </CatSprite>
           </div>
         </div>
       )}

@@ -77,7 +77,7 @@ export const BoostModal = () => {
   const timerColor = progress > 0.5 ? 'text-[#2E7D32]' : progress > 0.2 ? 'text-[#B5851A]' : 'text-[#C0392B]'
 
   return (
-    <Modal isOpen={isOpen} onClose={close}>
+    <Modal isOpen={isOpen}>
       <section
         aria-labelledby="boost"
         className="relative flex w-[300px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
@@ -111,9 +111,11 @@ export const BoostModal = () => {
             <span className="border-2 border-[#4F7A28] bg-[#7EB84A] px-2.5 py-0.5 text-xs font-medium text-white">
               {formatCompact(incomeRate)}/s
             </span>
-            <span className="absolute -right-[14px] -top-2 rotate-[32deg] border-2 border-[#B5851A] bg-[#FFD54F] px-1.5 text-[8px] font-bold text-[#6B4423]">
-              ×2
-            </span>
+            {isBoostActive && (
+              <span className="absolute -right-[14px] -top-2 rotate-[32deg] border-2 border-[#B5851A] bg-[#FFD54F] px-1.5 text-[8px] font-bold text-[#6B4423]">
+                ×2
+              </span>
+            )}
           </div>
         </div>
         {isBoostActive && (

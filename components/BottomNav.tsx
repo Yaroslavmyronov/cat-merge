@@ -25,7 +25,7 @@ export const BottomNav = () => {
   return (
     <nav
       aria-label="bottom navigation"
-      className="shrink-0 bg-[#A87E54] px-2 py-3 border-t-2 border-[#8B5E3C]"
+      className="shrink-0 bg-[#A87E54] px-2 py-3 border-t-[3px] border-[#8B5E3C]"
     >
       <ul className="flex items-center justify-center gap-2">
         <NavItem item={{ label: 'Shop' }} onClick={handleShop}>
