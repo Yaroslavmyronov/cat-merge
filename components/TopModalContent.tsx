@@ -139,7 +139,6 @@ export const TopModalContent = ({
 										? 'You'
 										: `${player.address.slice(0, 6)}…${player.address.slice(-4)}`}
 								</span>
-
 								<span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-[#8A5A45]">
 									<img src="/pixel_coin.png" alt="" className="h-3.5 w-3.5" style={{ imageRendering: 'pixelated' }} />
 									{formatCompact(player.totalEarned)}
@@ -148,7 +147,6 @@ export const TopModalContent = ({
 						</li>
 					)
 				})}
-
 				{loading && players.length > 0 && (
 					<li className="py-3 text-center text-[#A8794C]">
 						<LoadingDots />
@@ -156,11 +154,10 @@ export const TopModalContent = ({
 				)}
 				{hasMore && <li ref={sentinelRef} className="h-4" />}
 			</ol>
-
 			{currentPlayerRank !== null && !isMeInList && (
 				<div className="shrink-0 border-t-2 border-[#D4B896] bg-[#F0DFC0] px-3 py-2">
 					<article className="flex items-center gap-2 border-2 border-[#C68B3C] bg-[#FFF8E7] px-2 py-1.5">
-						<span className="flex h-6 w-6 shrink-0 items-center justify-center border-2 border-[#C68B3C] bg-[#FFD54F] text-[10px] font-bold text-[#6B4423]">
+						<span className="flex h-6 w-6 shrink-0 items-center justify-center text-[10px] font-bold text-[#A8794C]">
 							{currentPlayerRank}
 						</span>
 						<span className="min-w-0 flex-1 text-[11px] font-bold text-[#6B4423]">You</span>
