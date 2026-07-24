@@ -43,7 +43,6 @@ export const TopModalContent = ({
 		(p) => p.address.toLowerCase() === address?.toLowerCase(),
 	)
 
-	// подгрузка при приближении к концу списка
 	useEffect(() => {
 		const el = sentinelRef.current
 		if (!el || !hasMore) return
@@ -59,7 +58,6 @@ export const TopModalContent = ({
 		return () => observer.disconnect()
 	}, [hasMore, loadMore])
 
-	// сброс скролла при смене лиги
 	useEffect(() => {
 		listRef.current?.scrollTo({ top: 0 })
 	}, [viewLeague])
@@ -77,8 +75,6 @@ export const TopModalContent = ({
 			>
 				✕
 			</button>
-
-			{/* Заголовок */}
 			<header className="flex shrink-0 justify-center py-3">
 				<h2
 					id="top-title"
@@ -87,8 +83,6 @@ export const TopModalContent = ({
 					Leaderboard
 				</h2>
 			</header>
-
-			{/* Переключатель периода */}
 			<div className="flex items-center justify-center pb-3">
 				<button
 					type="button"
@@ -99,7 +93,6 @@ export const TopModalContent = ({
 				>
 					◀
 				</button>
-
 				<div className="flex flex-col items-center gap-1 min-w-[140px]">
 					<LeagueIcon size={100} league={viewLeague} />
 					<p className="text-sm font-bold uppercase tracking-wide text-[#8A5A45]">
@@ -109,7 +102,6 @@ export const TopModalContent = ({
 						<p className="text-[10px] text-[#A8794C]">from {formatCompact(threshold)}</p>
 					)}
 				</div>
-
 				<button
 					type="button"
 					onClick={() => next && setViewLeague(next)}
@@ -120,22 +112,17 @@ export const TopModalContent = ({
 					▶
 				</button>
 			</div>
-
-			{/* Список */}
 			<ol ref={listRef} className="min-h-0 grow overflow-y-auto px-3 pb-3">
-
 				{loading && players.length === 0 && (
 					<li className="py-3 text-center h-full flex justify-center items-center text-[#A8794C]">
 						<LoadingDots />
 					</li>
 				)}
-
 				{!loading && players.length === 0 && (
 					<li className="py-6 text-center text-[11px] text-[#A8794C] h-full flex justify-center items-center">
 						No players yet
 					</li>
 				)}
-
 				{players.map((player, i) => {
 					const rank = i + 1
 					const isMe = address?.toLowerCase() === player.address.toLowerCase()
@@ -144,14 +131,9 @@ export const TopModalContent = ({
 							<article className={`mb-1.5 flex items-center gap-2 border-2 ${isMe
 								? 'border-[#C68B3C] bg-[#FFF4DC]'
 								: 'border-[#8B5E3C] bg-[#FFF8E7]'} bg-[#FFF8E7] px-2 py-1.5`}>
-								<span className={`... ${rank === 1 ? 'text-[#A8794C]'
-									: rank === 2 ? 'text-[#A8794C]'
-										: rank === 3 ? 'border-[#8B5A2B] bg-[#C68B3C] text-white'
-											: 'border-[#D4B896] bg-[#F5E6C8] text-[#A8794C]'
-									}`}>
+								<span className='text-[#A8794C]'>
 									{rank}
 								</span>
-
 								<span className="min-w-0 flex-1 truncate text-[11px] font-bold text-[#6B4423]">
 									{isMe
 										? 'You'
@@ -167,19 +149,11 @@ export const TopModalContent = ({
 					)
 				})}
 
-				{/* подгрузка следующей страницы — внизу */}
 				{loading && players.length > 0 && (
 					<li className="py-3 text-center text-[#A8794C]">
 						<LoadingDots />
 					</li>
 				)}
-
-				{/* {!loading && !hasMore && players.length > 0 && (
-					<li className="py-3 text-center text-[10px] text-[#A8794C]">
-						End of leaderboard
-					</li>
-				)} */}
-
 				{hasMore && <li ref={sentinelRef} className="h-4" />}
 			</ol>
 
