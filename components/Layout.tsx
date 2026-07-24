@@ -1,12 +1,13 @@
-import { FC, ReactNode } from 'react';
-import { AuthGate } from './AuthGate';
-import { Header } from './Header';
-import { ShopModal } from './ShopModal';
-import { WelcomeModal } from './WelcomeModal';
-import { BoostModal } from './BoostModal';
+import { FC, ReactNode } from 'react'
+import { AuthGate } from './AuthGate'
+import { BoostModal } from './BoostModal'
+import { Header } from './Header'
+import { ShopModal } from './ShopModal'
+import { TopModal } from './TopModal'
+import { WelcomeModal } from './WelcomeModal'
 
 interface Props {
-  children: ReactNode;
+  children: ReactNode
 }
 const Layout: FC<Props> = ({ children }) => {
   return (
@@ -22,10 +23,11 @@ const Layout: FC<Props> = ({ children }) => {
           <WelcomeModal />
           <ShopModal />
           <BoostModal />
+          <TopModal />
         </AuthGate>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout

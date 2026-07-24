@@ -88,20 +88,11 @@ export const WelcomeModal = () => {
   }, [bonusClaimAvailable, open])
 
   return (
-    <Modal isOpen={isOpen} onClose={close}>
+    <Modal isOpen={isOpen}>
       <section
         aria-labelledby="welcome-title"
         className="relative flex w-[300px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
       >
-        {/* <button
-          type="button"
-          onClick={close}
-          aria-label="Close"
-          className="absolute -right-3 -top-3 z-10 h-8 w-8 border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white"
-        >
-          ✕
-        </button> */}
-
         <header className="flex justify-center pb-2 pt-3">
           <h2
             id="welcome-title"
