@@ -1,3 +1,5 @@
+import { ReactNode } from 'react'
+
 const CATS: Record<number, { x: number; y: number; w: number; h: number }> = {
   1: { x: 60, y: 50, w: 210, h: 230 },
   2: { x: 330, y: 50, w: 210, h: 230 },
@@ -14,46 +16,48 @@ const CATS: Record<number, { x: number; y: number; w: number; h: number }> = {
   45: { x: 600, y: 610, w: 210, h: 230 },
   50: { x: 870, y: 610, w: 210, h: 230 },
   100: { x: 1140, y: 610, w: 210, h: 230 },
-};
+}
 
-const SHEET_WIDTH = 1400;
-const SHEET_HEIGHT = 890;
+const SHEET_WIDTH = 1400
+const SHEET_HEIGHT = 890
 
 const AVAILABLE_LEVELS = Object.keys(CATS)
   .map(Number)
-  .sort((a, b) => a - b);
+  .sort((a, b) => a - b)
 
 function getSpriteLevel(level: number): number {
-  let closest = AVAILABLE_LEVELS[0];
+  let closest = AVAILABLE_LEVELS[0]
   for (const available of AVAILABLE_LEVELS) {
     if (available <= level) {
-      closest = available;
+      closest = available
     } else {
-      break;
+      break
     }
   }
-  return closest;
+  return closest
 }
 
 interface CatSpriteProps {
-  level: number;
-  size?: number;
-  className?: string;
-  showLevel?: boolean;
+  level: number
+  size?: number
+  className?: string
+  showLevel?: boolean
+  children?: ReactNode
 }
 
-export function CatSprite({ level, size = 60, className }: CatSpriteProps) {
-  const spriteLevel = getSpriteLevel(level);
-  const cat = CATS[spriteLevel];
+export function CatSprite({ level, size = 60, className, children }: CatSpriteProps) {
+  const spriteLevel = getSpriteLevel(level)
+  const cat = CATS[spriteLevel]
 
-  const scale = size / cat.w;
-  const height = cat.h * scale;
+  const scale = size / cat.w
+  const height = cat.h * scale
 
   return (
     <div
       className={className}
       style={{ position: 'relative', width: size, height }}
     >
+      {children}
       <div
         className="h-full w-full"
         style={{
@@ -64,5 +68,5 @@ export function CatSprite({ level, size = 60, className }: CatSpriteProps) {
         }}
       />
     </div>
-  );
+  )
 }

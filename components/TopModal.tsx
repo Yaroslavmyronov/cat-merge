@@ -10,7 +10,7 @@ export const TopModal = () => {
 	if (!league) return null
 	return (
 		<Modal isOpen={isOpen} >
-			{isOpen && <TopModalContent myLeague={league} onClose={close} />}
+			{isOpen && <TopModalContent myLeague={league} close={close} />}
 		</Modal>
 	)
 }
