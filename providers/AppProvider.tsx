@@ -32,7 +32,7 @@ export const config = createConfig({
   connectors,
   chains: [celo],
   transports: {
-    [celo.id]: http(),
+    [celo.id]: http(process.env.NEXT_PUBLIC_RPC_URL ?? 'https://forno.celo.org'),
   },
 })
 
