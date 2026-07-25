@@ -4,7 +4,9 @@ import { useProfileEvents } from '@/hooks/useProfileEvents'
 import { useEthereumAuth } from '@/lib/auth/signMessage'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { useEffect, useState } from 'react'
-import { useAccount } from 'wagmi'
+import toast from 'react-hot-toast'
+import { useAccount, useConnect } from 'wagmi'
+import { injected } from "wagmi/connectors"
 import { MyConnectButton } from './ui/MyConnectButton'
 
 const Screen = ({ children }: { children: React.ReactNode }) => (
@@ -16,13 +18,27 @@ const Screen = ({ children }: { children: React.ReactNode }) => (
 export function AuthGate({ children }: { children: React.ReactNode }) {
   useProfileEvents()
   const [hasMounted, setHasMounted] = useState(false)
+  const [isMiniPay, setIsMiniPay] = useState(false)
   const authStatus = useGameStore((s) => s.authStatus)
   const { address } = useAccount()
+  const { connect } = useConnect()
   const { signIn, status, errorMessage } = useEthereumAuth()
 
   useEffect(() => {
     setHasMounted(true)
-  }, [])
+    console.log('isMiniPay check:', window.ethereum?.isMiniPay)
+    if (window.ethereum?.isMiniPay) {
+      setIsMiniPay(true)
+      toast('MiniPay detected, connecting…', { duration: 4000 })
+      connect(
+        { connector: injected({ target: 'metaMask' }) },
+        {
+          onSuccess: () => toast.success('Wallet connected'),
+          onError: (e) => toast.error(`Connect failed: ${e.message}`),
+        },
+      )
+    }
+  }, [connect])
 
   if (!hasMounted || authStatus === 'loading') {
     return (
@@ -80,13 +96,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
         {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
 
-        {!address && <MyConnectButton />}
+        {!isMiniPay && !address && <MyConnectButton />}
 
         {address && (
           <button
             type="button"
             onClick={() => signIn()}
-            className="play-btn cursor-pointer bg-[#63c74d] text-white px-8 py-3 active:translate-x-[4px] active:translate-y-[4px]transition-transform duration-75"
+            className="play-btn cursor-pointer bg-[#63c74d] text-white px-8 py-3 active:translate-x-[4px] active:translate-y-[4px] transition-transform duration-75"
             style={{
               fontSize: '20px',
               border: '4px solid #181425',
