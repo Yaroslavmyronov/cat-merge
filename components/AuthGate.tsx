@@ -4,7 +4,6 @@ import { useProfileEvents } from '@/hooks/useProfileEvents'
 import { useEthereumAuth } from '@/lib/auth/signMessage'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
 import { useAccount, useConnect } from 'wagmi'
 import { MyConnectButton } from './ui/MyConnectButton'
 
@@ -25,18 +24,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setHasMounted(true)
-    console.log('isMiniPay check:', window.ethereum?.isMiniPay)
     if (window.ethereum?.isMiniPay) {
       setIsMiniPay(true)
-      toast('MiniPay detected, connecting…', { duration: 4000 })
       const injectedConnector = connectors.find((c) => c.type === 'injected')
       if (injectedConnector) {
-        connect({ connector: injectedConnector }, {
-          onSuccess: () => toast.success('Wallet connected'),
-          onError: (e) => toast.error(`Connect failed: ${e.message}`),
-        })
+        connect({ connector: injectedConnector },)
       }
-
     }
   }, [connect, connectors])
 
