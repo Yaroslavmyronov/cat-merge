@@ -6,7 +6,6 @@ import { useGameStore } from '@/lib/store/useGameStore'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useAccount, useConnect } from 'wagmi'
-import { injected } from "wagmi/connectors"
 import { MyConnectButton } from './ui/MyConnectButton'
 
 const Screen = ({ children }: { children: React.ReactNode }) => (
@@ -21,7 +20,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [isMiniPay, setIsMiniPay] = useState(false)
   const authStatus = useGameStore((s) => s.authStatus)
   const { address } = useAccount()
-  const { connect } = useConnect()
+  const { connect, connectors } = useConnect()
   const { signIn, status, errorMessage } = useEthereumAuth()
 
   useEffect(() => {
@@ -30,15 +29,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     if (window.ethereum?.isMiniPay) {
       setIsMiniPay(true)
       toast('MiniPay detected, connecting…', { duration: 4000 })
-      connect(
-        { connector: injected({ target: 'metaMask' }) },
-        {
+      const injectedConnector = connectors.find((c) => c.type === 'injected')
+      if (injectedConnector) {
+        connect({ connector: injectedConnector }, {
           onSuccess: () => toast.success('Wallet connected'),
           onError: (e) => toast.error(`Connect failed: ${e.message}`),
-        },
-      )
+        })
+      }
+
     }
-  }, [connect])
+  }, [connect, connectors])
 
   if (!hasMounted || authStatus === 'loading') {
     return (

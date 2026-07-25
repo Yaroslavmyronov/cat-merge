@@ -12,6 +12,7 @@ import { celo } from 'wagmi/chains'
 
 import { injectedWallet } from '@rainbow-me/rainbowkit/wallets'
 import { Toaster } from 'react-hot-toast'
+import { injected } from 'wagmi/connectors'
 import Layout from '../components/Layout'
 import { SessionChecker } from './ SessionChecker'
 
@@ -29,7 +30,10 @@ const connectors = connectorsForWallets(
 )
 
 export const config = createConfig({
-  connectors,
+  connectors: [
+    ...connectors,
+    injected(),
+  ],
   chains: [celo],
   transports: {
     [celo.id]: http(process.env.NEXT_PUBLIC_RPC_URL ?? 'https://forno.celo.org'),
