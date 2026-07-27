@@ -4,132 +4,34 @@ import { BottomNav } from '@/components/BottomNav'
 import { DeleteCatModal } from '@/components/DeleteCatModal'
 import { FarmBoard } from '@/components/FarmBoard'
 import { TrashZone } from '@/components/TrashZone'
-import { apiFetch } from '@/lib/api/fetchInstance'
-import { normalize } from '@/lib/normalizeBoard'
+import { useBoardActions } from '@/hooks/useBoardActions'
+import { useGameData } from '@/hooks/useGameData'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { BoardCell, BoardResponse } from '@/lib/types/board'
-import { Player } from '@/lib/types/player'
 import { PointerActivationConstraints } from '@dnd-kit/dom'
 import { DragDropProvider, PointerSensor } from '@dnd-kit/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
 export interface BoardState extends Omit<BoardResponse, 'cells'> {
   cells: (BoardCell | null)[]
 }
 
 export default function Home() {
-  const loadedRef = useRef(false)
-  const state = useGameStore((s) => s.board)
-  const setBoard = useGameStore((s) => s.setBoard)
-  const setProfile = useGameStore((s) => s.setProfile)
-  const setProfileStatus = useGameStore((s) => s.setProfileStatus)
-  const [loading, setLoading] = useState(true)
-  const [pendingDelete, setPendingDelete] = useState<number | null>(null)
-  const [isMerging, setIsMerging] = useState(false)
+  const { loading } = useGameData()
+  const board = useGameStore((s) => s.board)
   const [isDragging, setIsDragging] = useState(false)
-  const [mergeAnimation, setMergeAnimation] = useState<{
-    fromIndex: number
-    toIndex: number
-    level: number
-  } | null>(null)
-  const snapshotRef = useRef<BoardState | null>(null)
 
-  useEffect(() => {
-    if (loadedRef.current) return
-    loadedRef.current = true
-
-    apiFetch<Player>('/player/profile')
-      .then((p) => {
-        setProfile(p)
-        setProfileStatus('ready')
-        if (!p.bonusClaimAvailable) {
-          return apiFetch<BoardResponse>('/board/get-board')
-            .then((board) => setBoard(normalize(board)))
-            .catch((e) => {
-              console.error('Failed to fetch board:', e)
-            })
-        }
-      })
-      .catch((e) => {
-        setProfileStatus('error')
-        console.error('Failed to fetch profile:', e)
-      })
-      .finally(() => setLoading(false))
-  }, [])
-
-  async function handleMerge(fromIndex: number, toIndex: number) {
-    if (!state || isMerging) return
-
-    const fromCat = state.cells[fromIndex]
-    const toCat = state.cells[toIndex]
-
-    if (!fromCat || !toCat || fromCat.unitLevel !== toCat.unitLevel) return
-
-    setIsMerging(true)
-    setMergeAnimation({ fromIndex, toIndex, level: toCat.unitLevel })
-
-    try {
-      const response = await apiFetch<BoardResponse>('/board/merge', {
-        method: 'POST',
-        body: JSON.stringify({ fromIndex, toIndex }),
-      })
-      setTimeout(() => {
-        setBoard(normalize(response))
-        setMergeAnimation(null)
-        setIsMerging(false)
-      }, 500)
-    } catch (error) {
-      setMergeAnimation(null)
-      setIsMerging(false)
-
-      const fresh = await apiFetch<BoardResponse>('/board/get-board').catch(
-        () => null,
-      )
-      if (fresh) setBoard(normalize(fresh))
-    }
-  }
-
-  async function handleMove(fromIndex: number, toIndex: number) {
-    if (!state || isMerging) return
-
-    const snapshot = state
-    const optimistic = [...state.cells]
-    optimistic[toIndex] = optimistic[fromIndex]
-    optimistic[fromIndex] = null
-    setBoard({ ...state, cells: optimistic })
-
-    try {
-      const response = await apiFetch<BoardResponse>('/board/move', {
-        method: 'POST',
-        body: JSON.stringify({ fromIndex, toIndex }),
-      })
-      setBoard(normalize(response))
-    } catch (error) {
-      setBoard(snapshot)
-      console.error('Failed to move cat:', error)
-    }
-  }
-
-  async function confirmDelete() {
-    if (pendingDelete === null) return
-
-    const index = pendingDelete
-    const snapshot = snapshotRef.current
-    setPendingDelete(null)
-    snapshotRef.current = null
-
-    try {
-      const response = await apiFetch<BoardResponse>('/board/remove-unit', {
-        method: 'POST',
-        body: JSON.stringify(index),
-      })
-      setBoard(normalize(response))
-    } catch (error) {
-      if (snapshot) setBoard(snapshot)
-      console.error('Failed to delete cat:', error)
-    }
-  }
+  const {
+    merge,
+    move,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+    mergeAnimation,
+    pendingDelete,
+    catToDelete,
+  } = useBoardActions()
 
   function handleDragEnd(event: any) {
     setIsDragging(false)
@@ -138,40 +40,27 @@ export default function Home() {
     if (canceled) return
 
     const { source, target } = operation
-    if (!target || !state) return
+    if (!target || !board) return
 
     const fromIndex = Number(source.id)
 
     if (target.id === 'trash') {
-      snapshotRef.current = state
-      setPendingDelete(fromIndex)
-
-      const optimistic = [...state.cells]
-      optimistic[fromIndex] = null
-      setBoard({ ...state, cells: optimistic })
+      requestDelete(fromIndex)
       return
     }
 
     const toIndex = Number(target.id)
     if (fromIndex === toIndex) return
 
-    const fromCat = state.cells[fromIndex]
-    const toCat = state.cells[toIndex]
+    const fromCat = board.cells[fromIndex]
+    const toCat = board.cells[toIndex]
     if (!fromCat) return
 
     if (toCat === null) {
-      handleMove(fromIndex, toIndex)
+      move(fromIndex, toIndex)
     } else if (toCat.unitLevel === fromCat.unitLevel) {
-      handleMerge(fromIndex, toIndex)
+      merge(fromIndex, toIndex)
     }
-  }
-
-  function cancelDelete() {
-    if (snapshotRef.current) {
-      setBoard(snapshotRef.current)
-      snapshotRef.current = null
-    }
-    setPendingDelete(null)
   }
 
   return (
@@ -211,11 +100,11 @@ export default function Home() {
               </div>
             </div>
           </div>
-        ) : !state ? (
-          <div className="mt-4 text-red-500">Не удалось загрузить доску</div>
+        ) : !board ? (
+          <div className="mt-4 text-red-500">Failed to load board</div>
         ) : (
           <FarmBoard
-            cells={state.cells}
+            cells={board.cells}
             cols={4}
             mergeAnimation={mergeAnimation}
           />
@@ -251,11 +140,7 @@ export default function Home() {
       </div>
 
       <DeleteCatModal
-        cat={
-          pendingDelete !== null
-            ? (snapshotRef.current?.cells[pendingDelete] ?? null)
-            : null
-        }
+        cat={catToDelete}
         isOpen={pendingDelete !== null}
         onCancel={cancelDelete}
         onConfirm={confirmDelete}
