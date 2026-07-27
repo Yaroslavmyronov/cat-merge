@@ -31,9 +31,9 @@ export const Header = () => {
             className="flex items-center gap-1.5"
             role="status"
             aria-label={
-              profileStatus === 'loading'
-                ? 'Loading balance'
-                : `${formatFull(liveTotalEarned)} gold coins`
+              board
+                ? `${formatFull(liveTotalEarned)} gold coins`
+                : 'Loading balance'
             }
           >
             <img
@@ -42,32 +42,46 @@ export const Header = () => {
               className="h-4 w-4"
               style={{ imageRendering: 'pixelated' }}
             />
-            <span
-              aria-hidden="true"
-              className="text-sm font-medium tabular-nums text-[#4A3540]"
-            >
-              {profileStatus === 'loading' ? '—' : formatCompact(liveTotalEarned)}
-            </span>
+            {board ? (
+              <span
+                aria-hidden="true"
+                className="text-sm font-medium tabular-nums text-[#4A3540]"
+              >
+                {formatCompact(liveTotalEarned)}
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="pixel-pulse inline-block h-5 w-20 bg-[#D4B896]"
+              />
+            )}
           </p>
 
           <p
             className="flex items-center gap-1.5"
             role="status"
             aria-label={
-              profileStatus === 'loading'
-                ? 'Loading league'
-                : `${profile?.league ?? 'bronze'} league`
+              profileStatus === 'ready' && profile?.league
+                ? `${profile.league} league`
+                : 'Loading league'
             }
           >
-            {profileStatus !== 'loading' && profile?.league && (
+            {profileStatus === 'ready' && profile?.league && (
               <LeagueIcon league={profile.league.toLowerCase() as LeagueType} />
             )}
-            <span
-              aria-hidden="true"
-              className="text-sm font-medium uppercase text-[#8A5A45]"
-            >
-              {profileStatus === 'loading' ? '—' : (profile?.league ?? '—')}
-            </span>
+            {profileStatus === 'ready' && profile?.league ? (
+              <span
+                aria-hidden="true"
+                className="text-sm font-medium uppercase text-[#8A5A45]"
+              >
+                {profile.league}
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="pixel-pulse inline-block h-5 w-[134px] bg-[#D4B896]"
+              />
+            )}
           </p>
         </div>
       </div>

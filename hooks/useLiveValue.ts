@@ -1,23 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
 
 export function useLiveValue(
   balance: number,
   incomeRate: number,
   serverTime: string,
 ) {
-  const [displayBalance, setDisplayBalance] = useState(balance);
+  const [displayBalance, setDisplayBalance] = useState(balance)
 
   useEffect(() => {
-    const receivedAt = Date.now();
-    setDisplayBalance(balance);
+    const receivedAt = Date.now()
+    setDisplayBalance(balance)
+
+    if (incomeRate <= 0) return
 
     const id = setInterval(() => {
-      const elapsed = Math.max(0, (Date.now() - receivedAt) / 1000);
-      setDisplayBalance(balance + incomeRate * elapsed);
-    }, 1000);
+      const elapsed = Math.max(0, (Date.now() - receivedAt) / 1000)
+      setDisplayBalance(balance + incomeRate * elapsed)
+    }, 1000)
 
-    return () => clearInterval(id);
-  }, [balance, incomeRate, serverTime]);
+    return () => clearInterval(id)
+  }, [balance, incomeRate, serverTime])
 
-  return displayBalance;
+  return displayBalance
 }

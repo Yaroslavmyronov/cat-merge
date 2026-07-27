@@ -18,8 +18,9 @@ export interface BoardState extends Omit<BoardResponse, 'cells'> {
 }
 
 export default function Home() {
-  const { loading } = useGameData()
+  useGameData()
   const board = useGameStore((s) => s.board)
+  const boardStatus = useGameStore((s) => s.boardStatus)
   const [isDragging, setIsDragging] = useState(false)
 
   const {
@@ -77,7 +78,15 @@ export default function Home() {
       onDragEnd={handleDragEnd}
     >
       <main className="flex flex-1 flex-col items-center justify-end overflow-y-auto px-4 pb-4">
-        {loading ? (
+        {board ? (
+          <FarmBoard
+            cells={board.cells}
+            cols={4}
+            mergeAnimation={mergeAnimation}
+          />
+        ) : boardStatus === 'error' ? (
+          <div className="mt-4 text-red-500">Failed to load board</div>
+        ) : (
           <div
             style={{ aspectRatio: '936 / 744' }}
             className="relative flex w-full flex-col bg-[url(/pixel_big_carpet.png)] bg-cover bg-center"
@@ -100,14 +109,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        ) : !board ? (
-          <div className="mt-4 text-red-500">Failed to load board</div>
-        ) : (
-          <FarmBoard
-            cells={board.cells}
-            cols={4}
-            mergeAnimation={mergeAnimation}
-          />
         )}
       </main>
 

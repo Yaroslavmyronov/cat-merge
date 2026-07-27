@@ -21,16 +21,15 @@ export const WelcomeModal = () => {
   const { buy, step, error, pendingType } = usePurchase()
   const [pending, setPending] = useState(false)
   const [claimError, setClaimError] = useState<string | null>(null)
-  const bonusClaimAvailable = useGameStore((s) => s.profile?.bonusClaimAvailable)
   const setAwaitingPurchase = useGameStore((s) => s.setAwaitingPurchase)
   const awaitingPurchase = useGameStore((s) => s.awaitingPurchase)
   const setProfile = useGameStore((s) => s.setProfile)
   const setBoard = useGameStore((s) => s.setBoard)
-  const claimableGold = useGameStore((s) => s.profile?.claimableGold ?? 0)
-  const lastCollectedAt = useGameStore((s) => s.profile?.lastCollectedAt)
+  const setBoardStatus = useGameStore((s) => s.setBoardStatus)
+  const profile = useGameStore((s) => s.profile)
 
-  const awayText = lastCollectedAt
-    ? formatAway(Date.now() - new Date(lastCollectedAt).getTime())
+  const awayText = profile?.lastCollectedAt
+    ? formatAway(Date.now() - new Date(profile?.lastCollectedAt).getTime())
     : ''
 
   const { data: rewardPrice } = useReadContract({
@@ -47,6 +46,7 @@ export const WelcomeModal = () => {
   const handleClaim = async () => {
     if (pending) return
     setPending(true)
+    setClaimError(null)
 
     try {
       const wasBonusAvailable = useGameStore.getState().profile?.bonusClaimAvailable
@@ -57,6 +57,7 @@ export const WelcomeModal = () => {
       if (wasBonusAvailable && !fresh.bonusClaimAvailable) {
         const board = await apiFetch<BoardResponse>('/board/get-board')
         setBoard(normalize(board))
+        setBoardStatus('ready')
       }
 
       close()
@@ -74,18 +75,17 @@ export const WelcomeModal = () => {
   }
 
   useEffect(() => {
-    if (isOpen && bonusClaimAvailable === false && shownRef.current) {
+    if (isOpen && profile?.bonusClaimAvailable === false && shownRef.current) {
       close()
     }
-  }, [isOpen, bonusClaimAvailable, close])
+  }, [isOpen, profile?.bonusClaimAvailable, close])
 
   useEffect(() => {
     if (shownRef.current) return
-    console.log(bonusClaimAvailable)
-    if (!bonusClaimAvailable) return
+    if (!profile?.bonusClaimAvailable) return
     shownRef.current = true
     open()
-  }, [bonusClaimAvailable, open])
+  }, [profile?.bonusClaimAvailable, open])
 
   return (
     <Modal isOpen={isOpen}>
@@ -116,7 +116,7 @@ export const WelcomeModal = () => {
             className="h-5 w-5"
             style={{ imageRendering: 'pixelated' }}
           />
-          <span className="text-2xl font-bold text-[#6B4423]">{formatCompact(claimableGold)}</span>
+          <span className="text-2xl font-bold text-[#6B4423]">{formatCompact(profile?.claimableGold ?? 0)}</span>
         </div>
 
         <div className="px-4 pb-2">

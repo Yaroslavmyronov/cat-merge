@@ -3,13 +3,13 @@ import { normalize } from '@/lib/normalizeBoard'
 import { useGameStore } from '@/lib/store/useGameStore'
 import { BoardResponse } from '@/lib/types/board'
 import { Player } from '@/lib/types/player'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 export function useGameData() {
 	const setBoard = useGameStore((s) => s.setBoard)
 	const setProfile = useGameStore((s) => s.setProfile)
 	const setProfileStatus = useGameStore((s) => s.setProfileStatus)
-	const [loading, setLoading] = useState(true)
+	const setBoardStatus = useGameStore((s) => s.setBoardStatus)
 	const loadedRef = useRef(false)
 
 	useEffect(() => {
@@ -17,23 +17,29 @@ export function useGameData() {
 		loadedRef.current = true
 
 		apiFetch<Player>('/player/profile')
-			.then((p) => {
-				setProfile(p)
+			.then((profile) => {
+				setProfile(profile)
 				setProfileStatus('ready')
-				if (!p.bonusClaimAvailable) {
-					return apiFetch<BoardResponse>('/board/get-board')
-						.then((board) => setBoard(normalize(board)))
-						.catch((e) => {
-							console.error('Failed to fetch board:', e)
-						})
+
+				if (profile.bonusClaimAvailable) {
+					setBoardStatus('idle')
+					return
 				}
+
+				return apiFetch<BoardResponse>('/board/get-board')
+					.then((board) => {
+						setBoard(normalize(board))
+						setBoardStatus('ready')
+					})
+					.catch((e) => {
+						setBoardStatus('error')
+						console.error('Failed to fetch board:', e)
+					})
 			})
 			.catch((e) => {
 				setProfileStatus('error')
+				setBoardStatus('error')
 				console.error('Failed to fetch profile:', e)
 			})
-			.finally(() => setLoading(false))
 	}, [])
-
-	return { loading }
 }
