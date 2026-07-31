@@ -106,9 +106,9 @@ export const TopModalContent = ({
 					<p className="text-sm font-bold uppercase tracking-wide text-[#8A5A45]">
 						{viewLeague}
 					</p>
-					{threshold !== null && (
-						<p className="text-[10px] text-[#A8794C]">from {formatCompact(threshold)}</p>
-					)}
+					<p className="min-h-[15px] text-[10px] text-[#A8794C]">
+						{threshold !== null ? `from ${formatCompact(threshold)}` : ''}
+					</p>
 				</div>
 				<button
 					type="button"
