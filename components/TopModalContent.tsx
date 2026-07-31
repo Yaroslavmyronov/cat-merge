@@ -4,10 +4,17 @@ import { useGameStore } from '@/lib/store/useGameStore'
 import { LeagueType } from '@/lib/types/player'
 import { useEffect, useRef, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { CloseButton } from './ui/CloseButton'
 import { LeagueIcon } from './ui/LeagueIcon'
 import { LoadingDots } from './ui/LoadingDots'
 
 const LEAGUES: LeagueType[] = ['bronze', 'silver', 'gold', 'emerald', 'sapphire', 'amethyst']
+
+const MEDALS: Record<number, string> = {
+	1: '/medal_gold.png',
+	2: '/medal_silver.png',
+	3: '/medal_bronze.png',
+}
 
 export const TopModalContent = ({
 	myLeague,
@@ -67,14 +74,7 @@ export const TopModalContent = ({
 			aria-labelledby="top-title"
 			className="relative flex h-[560px] w-[320px] flex-col border-4 border-[#8B5E3C] bg-[#F5E6C8]"
 		>
-			<button
-				type="button"
-				onClick={close}
-				aria-label="Close top"
-				className="absolute -right-3 -top-3 h-8 w-8 border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white"
-			>
-				✕
-			</button>
+			<CloseButton onClose={close} label="Close leaderboard"></CloseButton>
 			<header className="flex shrink-0 justify-center py-3">
 				<h2
 					id="top-title"
@@ -98,9 +98,9 @@ export const TopModalContent = ({
 					<p className="text-sm font-bold uppercase tracking-wide text-[#8A5A45]">
 						{viewLeague}
 					</p>
-					{threshold !== null && (
-						<p className="text-[10px] text-[#A8794C]">from {formatCompact(threshold)}</p>
-					)}
+					<p className="min-h-[15px] text-[10px] text-[#A8794C]">
+						{threshold !== null ? `from ${formatCompact(threshold)}` : ''}
+					</p>
 				</div>
 				<button
 					type="button"
@@ -126,14 +126,23 @@ export const TopModalContent = ({
 				{players.map((player, i) => {
 					const rank = i + 1
 					const isMe = address?.toLowerCase() === player.address.toLowerCase()
+					const medal = MEDALS[rank]
 					return (
 						<li key={player.address}>
 							<article className={`mb-1.5 flex items-center gap-2 border-2 ${isMe
-								? 'border-[#C68B3C] bg-[#FFF4DC]'
+								? 'border-[#8B5E3C] bg-[#FFE9B8] shadow-[3px_3px_0_#C68B3C]'
 								: 'border-[#8B5E3C] bg-[#FFF8E7]'} bg-[#FFF8E7] px-2 py-1.5`}>
-								<span className='text-[#A8794C]'>
-									{rank}
-								</span>
+								{medal ? (
+									<img
+										src={medal}
+										alt={`Rank ${rank}`}
+										className="h-6 w-6 shrink-0 object-contain"
+									/>
+								) : (
+									<span className='text-[#A8794C]'>
+										{rank}
+									</span>
+								)}
 								<span className="min-w-0 flex-1 truncate text-[11px] font-bold text-[#6B4423]">
 									{isMe
 										? 'You'
