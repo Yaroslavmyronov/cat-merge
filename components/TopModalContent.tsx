@@ -9,6 +9,12 @@ import { LoadingDots } from './ui/LoadingDots'
 
 const LEAGUES: LeagueType[] = ['bronze', 'silver', 'gold', 'emerald', 'sapphire', 'amethyst']
 
+const MEDALS: Record<number, string> = {
+	1: '/medal_gold.png',
+	2: '/medal_silver.png',
+	3: '/medal_bronze.png',
+}
+
 export const TopModalContent = ({
 	myLeague,
 	close,
@@ -126,14 +132,23 @@ export const TopModalContent = ({
 				{players.map((player, i) => {
 					const rank = i + 1
 					const isMe = address?.toLowerCase() === player.address.toLowerCase()
+					const medal = MEDALS[rank]
 					return (
 						<li key={player.address}>
 							<article className={`mb-1.5 flex items-center gap-2 border-2 ${isMe
 								? 'border-[#C68B3C] bg-[#FFF4DC]'
 								: 'border-[#8B5E3C] bg-[#FFF8E7]'} bg-[#FFF8E7] px-2 py-1.5`}>
-								<span className='text-[#A8794C]'>
-									{rank}
-								</span>
+								{medal ? (
+									<img
+										src={medal}
+										alt={`Rank ${rank}`}
+										className="h-6 w-6 shrink-0 object-contain"
+									/>
+								) : (
+									<span className='text-[#A8794C]'>
+										{rank}
+									</span>
+								)}
 								<span className="min-w-0 flex-1 truncate text-[11px] font-bold text-[#6B4423]">
 									{isMe
 										? 'You'
