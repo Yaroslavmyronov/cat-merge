@@ -76,10 +76,12 @@ export const TopModalContent = ({
 			<button
 				type="button"
 				onClick={close}
-				aria-label="Close top"
-				className="absolute -right-3 -top-3 h-8 w-8 border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white"
+				aria-label="Close leaderboard"
+				className="absolute -right-[18px] -top-[18px] z-10 flex h-11 w-11 items-center justify-center"
 			>
-				✕
+				<span className="flex h-8 w-8 items-center justify-center border-2 border-[#8B2E2E] bg-[#D94545] text-xs font-bold text-white">
+					✕
+				</span>
 			</button>
 			<header className="flex shrink-0 justify-center py-3">
 				<h2
@@ -136,7 +138,7 @@ export const TopModalContent = ({
 					return (
 						<li key={player.address}>
 							<article className={`mb-1.5 flex items-center gap-2 border-2 ${isMe
-								? 'border-[#C68B3C] bg-[#FFF4DC]'
+								? 'border-[#8B5E3C] bg-[#FFE9B8] shadow-[3px_3px_0_#C68B3C]'
 								: 'border-[#8B5E3C] bg-[#FFF8E7]'} bg-[#FFF8E7] px-2 py-1.5`}>
 								{medal ? (
 									<img
