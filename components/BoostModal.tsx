@@ -118,11 +118,16 @@ export const BoostModal = () => {
             )}
           </div>
         </div>
-        {isBoostActive && (
+        {awaitingPurchase && !isBoostActive ? (
+          <div className="mx-4 my-3 flex items-center justify-center gap-1 text-[11px] text-[#A8794C]">
+            <LoadingDots /> Activating boost…
+          </div>
+        ) : isBoostActive ? (
           <>
             <div className={`mx-4 mb-1.5 mt-1 text-center text-[15px] font-medium tracking-[1px] ${timerColor}`}>
               {formatTimer(timeLeft)}
             </div>
+
             <div className="mx-4 mb-1 text-center text-[10px] text-[#A8794C]">
               {awaitingPurchase ? (
                 <span className="inline-flex items-center gap-1">
@@ -145,7 +150,7 @@ export const BoostModal = () => {
               })}
             </div>
           </>
-        )}
+        ) : null}
         <div className="flex gap-2 px-4 pb-4">
           <button onClick={() => handleBuy(EventType.BoostSpeed75m)} disabled={step !== 'idle'} className="flex flex-1 cursor-pointer flex-col items-center gap-1.5 border-2 border-[#C68B3C] bg-[#FFF8E7] pb-2 pt-2.5 hover:bg-[#f5ebd6]">
             <span className="text-[13px] font-medium text-[#6B4423]">
